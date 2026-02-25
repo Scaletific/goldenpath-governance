@@ -93,7 +93,7 @@
         "secretsmanager:DeleteResourcePolicy",
         "secretsmanager:ListSecretVersionIds"
       ],
-      "Resource": "arn:aws:secretsmanager:eu-west-2:[AWS_ACCOUNT_ID]:secret:goldenpath/*"
+      "Resource": "arn:aws:secretsmanager:[AWS_REGION]:[AWS_ACCOUNT_ID]:secret:goldenpath/*"
     },
     {
       "Sid": "SecretsManagerList",
@@ -130,7 +130,7 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": "eu-west-2"
+          "aws:RequestedRegion": "[AWS_REGION]"
         },
         "StringLike": {
           "aws:RequestTag/Name": "goldenpath-*"
@@ -157,7 +157,7 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": "eu-west-2"
+          "aws:RequestedRegion": "[AWS_REGION]"
         }
       }
     },
@@ -200,7 +200,7 @@
         "eks:UntagResource",
         "eks:ListTagsForResource"
       ],
-      "Resource": "arn:aws:eks:eu-west-2:[AWS_ACCOUNT_ID]:cluster/goldenpath-*"
+      "Resource": "arn:aws:eks:[AWS_REGION]:[AWS_ACCOUNT_ID]:cluster/goldenpath-*"
     },
     {
       "Sid": "EKSNodeGroupManagement",
@@ -213,8 +213,8 @@
         "eks:UpdateNodegroupVersion"
       ],
       "Resource": [
-        "arn:aws:eks:eu-west-2:[AWS_ACCOUNT_ID]:cluster/goldenpath-*",
-        "arn:aws:eks:eu-west-2:[AWS_ACCOUNT_ID]:nodegroup/goldenpath-*/*/*"
+        "arn:aws:eks:[AWS_REGION]:[AWS_ACCOUNT_ID]:cluster/goldenpath-*",
+        "arn:aws:eks:[AWS_REGION]:[AWS_ACCOUNT_ID]:nodegroup/goldenpath-*/*/*"
       ]
     },
     {
@@ -228,8 +228,8 @@
         "eks:UpdateAddon"
       ],
       "Resource": [
-        "arn:aws:eks:eu-west-2:[AWS_ACCOUNT_ID]:cluster/goldenpath-*",
-        "arn:aws:eks:eu-west-2:[AWS_ACCOUNT_ID]:addon/goldenpath-*/*/*"
+        "arn:aws:eks:[AWS_REGION]:[AWS_ACCOUNT_ID]:cluster/goldenpath-*",
+        "arn:aws:eks:[AWS_REGION]:[AWS_ACCOUNT_ID]:addon/goldenpath-*/*/*"
       ]
     },
     {
@@ -244,8 +244,8 @@
         "eks:ListAssociatedAccessPolicies"
       ],
       "Resource": [
-        "arn:aws:eks:eu-west-2:[AWS_ACCOUNT_ID]:cluster/goldenpath-*",
-        "arn:aws:eks:eu-west-2:[AWS_ACCOUNT_ID]:access-entry/goldenpath-*/*/*"
+        "arn:aws:eks:[AWS_REGION]:[AWS_ACCOUNT_ID]:cluster/goldenpath-*",
+        "arn:aws:eks:[AWS_REGION]:[AWS_ACCOUNT_ID]:access-entry/goldenpath-*/*/*"
       ]
     },
     {
@@ -272,7 +272,7 @@
         "rds:StartDBInstance",
         "rds:StopDBInstance"
       ],
-      "Resource": "arn:aws:rds:eu-west-2:[AWS_ACCOUNT_ID]:db:goldenpath-*"
+      "Resource": "arn:aws:rds:[AWS_REGION]:[AWS_ACCOUNT_ID]:db:goldenpath-*"
     },
     {
       "Sid": "RDSSubnetGroupManagement",
@@ -282,7 +282,7 @@
         "rds:DeleteDBSubnetGroup",
         "rds:ModifyDBSubnetGroup"
       ],
-      "Resource": "arn:aws:rds:eu-west-2:[AWS_ACCOUNT_ID]:subgrp:goldenpath-*"
+      "Resource": "arn:aws:rds:[AWS_REGION]:[AWS_ACCOUNT_ID]:subgrp:goldenpath-*"
     },
     {
       "Sid": "RDSParameterGroupManagement",
@@ -292,7 +292,7 @@
         "rds:DeleteDBParameterGroup",
         "rds:ModifyDBParameterGroup"
       ],
-      "Resource": "arn:aws:rds:eu-west-2:[AWS_ACCOUNT_ID]:pg:goldenpath-*"
+      "Resource": "arn:aws:rds:[AWS_REGION]:[AWS_ACCOUNT_ID]:pg:goldenpath-*"
     },
     {
       "Sid": "RDSSecurityGroupManagement",
@@ -303,7 +303,7 @@
         "rds:AuthorizeDBSecurityGroupIngress",
         "rds:RevokeDBSecurityGroupIngress"
       ],
-      "Resource": "arn:aws:rds:eu-west-2:[AWS_ACCOUNT_ID]:secgrp:goldenpath-*"
+      "Resource": "arn:aws:rds:[AWS_REGION]:[AWS_ACCOUNT_ID]:secgrp:goldenpath-*"
     },
     {
       "Sid": "RDSTagging",
@@ -313,7 +313,7 @@
         "rds:RemoveTagsFromResource",
         "rds:ListTagsForResource"
       ],
-      "Resource": "arn:aws:rds:eu-west-2:[AWS_ACCOUNT_ID]:*:goldenpath-*"
+      "Resource": "arn:aws:rds:[AWS_REGION]:[AWS_ACCOUNT_ID]:*:goldenpath-*"
     },
     {
       "Sid": "RDSReadOnly",
@@ -384,7 +384,7 @@
         "dynamodb:PutItem",
         "dynamodb:DeleteItem"
       ],
-      "Resource": "arn:aws:dynamodb:eu-west-2:[AWS_ACCOUNT_ID]:table/terraform-lock"
+      "Resource": "arn:aws:dynamodb:[AWS_REGION]:[AWS_ACCOUNT_ID]:table/terraform-lock"
     },
     {
       "Sid": "ECRRepositoryManagement",
@@ -403,7 +403,7 @@
         "ecr:GetRepositoryPolicy",
         "ecr:DeleteRepositoryPolicy"
       ],
-      "Resource": "arn:aws:ecr:eu-west-2:[AWS_ACCOUNT_ID]:repository/goldenpath-*"
+      "Resource": "arn:aws:ecr:[AWS_REGION]:[AWS_ACCOUNT_ID]:repository/goldenpath-*"
     },
     {
       "Sid": "ECRAuth",
@@ -449,7 +449,7 @@
         "cloudwatch:DeleteAlarms",
         "cloudwatch:DescribeAlarms"
       ],
-      "Resource": "arn:aws:cloudwatch:eu-west-2:[AWS_ACCOUNT_ID]:alarm:goldenpath-*"
+      "Resource": "arn:aws:cloudwatch:[AWS_REGION]:[AWS_ACCOUNT_ID]:alarm:goldenpath-*"
     },
     {
       "Sid": "CloudWatchLogs",
@@ -462,7 +462,7 @@
         "logs:UntagLogGroup",
         "logs:PutRetentionPolicy"
       ],
-      "Resource": "arn:aws:logs:eu-west-2:[AWS_ACCOUNT_ID]:log-group:/aws/eks/goldenpath-*"
+      "Resource": "arn:aws:logs:[AWS_REGION]:[AWS_ACCOUNT_ID]:log-group:/aws/eks/goldenpath-*"
     },
     {
       "Sid": "KMSUsage",
@@ -474,13 +474,13 @@
         "kms:DescribeKey",
         "kms:CreateGrant"
       ],
-      "Resource": "arn:aws:kms:eu-west-2:[AWS_ACCOUNT_ID]:key/*",
+      "Resource": "arn:aws:kms:[AWS_REGION]:[AWS_ACCOUNT_ID]:key/*",
       "Condition": {
         "StringLike": {
           "kms:ViaService": [
-            "secretsmanager.eu-west-2.amazonaws.com",
-            "rds.eu-west-2.amazonaws.com",
-            "s3.eu-west-2.amazonaws.com"
+            "secretsmanager.[AWS_REGION].amazonaws.com",
+            "rds.[AWS_REGION].amazonaws.com",
+            "s3.[AWS_REGION].amazonaws.com"
           ]
         }
       }
@@ -528,7 +528,7 @@
         "lambda:UntagResource",
         "lambda:ListTags"
       ],
-      "Resource": "arn:aws:lambda:eu-west-2:[AWS_ACCOUNT_ID]:function:goldenpath-*"
+      "Resource": "arn:aws:lambda:[AWS_REGION]:[AWS_ACCOUNT_ID]:function:goldenpath-*"
     },
     {
       "Sid": "ELBReadOnly",

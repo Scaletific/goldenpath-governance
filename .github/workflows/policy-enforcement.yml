@@ -32,7 +32,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.TF_AWS_IAM_ROLE_DEV }}
-          aws-region: eu-west-2
+          aws-region: [AWS_REGION]
 
       - name: Load Policies
         id: load-policies

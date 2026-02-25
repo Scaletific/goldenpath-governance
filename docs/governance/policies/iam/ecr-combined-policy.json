@@ -21,7 +21,7 @@
                 "ecr:GetLifecyclePolicy",
                 "ecr:TagResource"
             ],
-            "Resource": "arn:aws:ecr:eu-west-2:ACCOUNT_ID:repository/*"
+            "Resource": "arn:aws:ecr:[AWS_REGION]:ACCOUNT_ID:repository/*"
         },
         {
             "Sid": "ImageManagement",
@@ -35,7 +35,7 @@
                 "ecr:UploadLayerPart",
                 "ecr:CompleteLayerUpload"
             ],
-            "Resource": "arn:aws:ecr:eu-west-2:ACCOUNT_ID:repository/*"
+            "Resource": "arn:aws:ecr:[AWS_REGION]:ACCOUNT_ID:repository/*"
         }
     ]
 }

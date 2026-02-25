@@ -241,7 +241,7 @@ kind: Application
 metadata:
   name: hello-goldenpath-idp-dev
   annotations:
-    argocd-image-updater.argoproj.io/image-list: app=339712971032.dkr.ecr.eu-west-2.amazonaws.com/hello-goldenpath-idp
+    argocd-image-updater.argoproj.io/image-list: app=[AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/hello-goldenpath-idp
     argocd-image-updater.argoproj.io/app.update-strategy: latest
 spec:
   syncPolicy:
@@ -258,7 +258,7 @@ kind: Application
 metadata:
   name: hello-goldenpath-idp-prod
   annotations:
-    argocd-image-updater.argoproj.io/image-list: app=339712971032.dkr.ecr.eu-west-2.amazonaws.com/hello-goldenpath-idp
+    argocd-image-updater.argoproj.io/image-list: app=[AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/hello-goldenpath-idp
     argocd-image-updater.argoproj.io/app.update-strategy: semver
 spec:
   syncPolicy:
