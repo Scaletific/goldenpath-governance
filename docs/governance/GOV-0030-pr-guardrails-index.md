@@ -202,7 +202,7 @@ These guardrails enforce documentation and session capture standards.
 - New content must include timestamped update header (`## Update - YYYY-MM-DDTHH:MM:SSZ`)
 - Frontmatter updates are allowed (e.g., `relates_to` changes)
 
-**Related:** [GOV-0034-ai-agent-governance](GOV-0034-ai-agent-governance.md), [26_AI_AGENT_PROTOCOLS](../80-onboarding/26_AI_AGENT_PROTOCOLS.md)
+**Related:** [GOV-0034-ai-agent-governance](GOV-0034-ai-agent-governance.md), [26_AI_AGENT_PROTOCOLS](../onboarding/26_AI_AGENT_PROTOCOLS.md)
 
 ---
 
@@ -221,7 +221,7 @@ These guardrails enforce documentation and session capture standards.
   - a session capture update (`session_capture/**/*.md`, append-only)
   - a session summary update (`session_summary/agent_session_summary.md`)
 
-**Related:** [GOV-0034-ai-agent-governance](GOV-0034-ai-agent-governance.md), [26_AI_AGENT_PROTOCOLS](../80-onboarding/26_AI_AGENT_PROTOCOLS.md)
+**Related:** [GOV-0034-ai-agent-governance](GOV-0034-ai-agent-governance.md), [26_AI_AGENT_PROTOCOLS](../onboarding/26_AI_AGENT_PROTOCOLS.md)
 
 ---
 

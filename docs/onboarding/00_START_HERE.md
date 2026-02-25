@@ -102,7 +102,7 @@ To maintain platform velocity without breaking things, internalize these 3 princ
 |[**`NEW_JOINERS.md`**](./23_NEW_JOINERS.md)|Deep-dive for new team members.|
 |[**`PR_GATES.md`**](./24_PR_GATES.md)|Detailed breakdown of CI/CD requirements.|
 |[**`TESTING_STANDARDS.md`**](../tests/TESTING_STANDARDS.md)|The definitive guide to our 5-phase testing model.|
-|[**`GOV-0026-governance-vocabulary.md`**](../10-governance/GOV-0026-governance-vocabulary.md)|Official list of Owners, Domains, and VQ Classes.|
+|[**`GOV-0026-governance-vocabulary.md`**](../governance/GOV-0026-governance-vocabulary.md)|Official list of Owners, Domains, and VQ Classes.|
 
 ---
 

@@ -60,7 +60,7 @@ We have implemented **Cascading Metadata Inheritance** paired with an **Active G
 ### 3. Active Governance Loop
 
 - **Automated Audit**: A recurring process (`audit_metadata.py`) validates all artifacts and generates immutable health snapshots.
-- **Governance Vocabulary**: Auto-generated human-readable documentation ([GOV-0026-governance-vocabulary.md](../10-governance/GOV-0026-governance-vocabulary.md)) ensures stakeholders are always aligned on valid enums.
+- **Governance Vocabulary**: Auto-generated human-readable documentation ([GOV-0026-governance-vocabulary.md](../governance/GOV-0026-governance-vocabulary.md)) ensures stakeholders are always aligned on valid enums.
 
 ### 4. Local DX Helper
 

@@ -200,5 +200,5 @@ Codify 6 new prompt templates (PROMPT-0006 through PROMPT-0011) covering the hig
 - [PROMPT-0003](../../prompt-templates/PROMPT-0003-recursive-pr-gate-compliance.md) — Recursive CI fix loop
 - [ADR-0192](ADR-0192-multi-agent-coordination-protocol.md) — Multi-agent coordination protocol
 - [ADR-0193](ADR-0193-native-issue-tracking-pipeline.md) — Issue tracking pipeline
-- [GOV-0022](../10-governance/policies/GOV-0022-idea-to-initiative-lifecycle.md) — Idea-to-initiative lifecycle
+- [GOV-0022](../governance/policies/GOV-0022-idea-to-initiative-lifecycle.md) — Idea-to-initiative lifecycle
 - [EC-0021](../extend-capabilities/EC-0021-semantic-agent-cli.md) — Semantic agent CLI concept

@@ -232,9 +232,9 @@ Agent: [Continues with updated baseline]
 
 - [ADR-0162: Determinism Protection](./ADR-0162-determinism-protection.md) - Why determinism matters
 - [ADR-0182: TDD Philosophy](./ADR-0182-tdd-philosophy.md) - Test-first mandate
-- [GOV-0017: TDD and Determinism](../10-governance/policies/GOV-0017-tdd-and-determinism.md) - Enforcement
+- [GOV-0017: TDD and Determinism](../governance/policies/GOV-0017-tdd-and-determinism.md) - Enforcement
 - [EC-0014: Agent Scope Registry](../extend-capabilities/EC-0014-agent-scope-registry.md) - Agent roles
-- [26_AI_AGENT_PROTOCOLS](../80-onboarding/26_AI_AGENT_PROTOCOLS.md) - Agent rules
+- [26_AI_AGENT_PROTOCOLS](../onboarding/26_AI_AGENT_PROTOCOLS.md) - Agent rules
 
 ## Appendix: Trust Model Diagram
 

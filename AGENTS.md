@@ -187,11 +187,11 @@ platform-dashboard/      # Platform Health Dashboard (PRD-0012)
 rag-web-ui/              # Governance RAG Web UI (PRD-0011)
 docs/
   adrs/                  # Architecture Decision Records
-  10-governance/         # Policies and governance docs
+  governance/         # Policies and governance docs
   20-contracts/          # PRDs, schemas, resource catalogs
   50-scripts/            # Script documentation
   70-operations/         # Runbooks and operational docs
-  80-onboarding/         # Getting started guides
+  onboarding/         # Getting started guides
 session_capture/         # Session documentation (append-only)
 session_summary/         # Session summary index
 .github/workflows/       # CI/CD pipelines

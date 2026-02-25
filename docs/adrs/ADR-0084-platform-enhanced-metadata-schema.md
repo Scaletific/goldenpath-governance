@@ -108,7 +108,7 @@ Implement an enhanced metadata schema with the following fields:
 
 3. **Category Taxonomy**
    - Uses directory structure as source of truth
-   - Docs: numerical prefixes (00-foundations, 10-governance, 20-contracts, etc.)
+   - Docs: numerical prefixes (00-foundations, governance, 20-contracts, etc.)
    - Code: top-level directories (modules, apps, gitops, envs, bootstrap, etc.)
 
 4. **Version Detection**

@@ -96,7 +96,7 @@ Template enforcement:
 PRs are labeled automatically based on touched paths:
 
 - `infra`: envs/modules/bootstrap/gitops/workflows/scripts
-- `governance`: docs/10-governance, docs/20-contracts, docs/90-doc-system
+- `governance`: docs/governance, docs/20-contracts, docs/90-doc-system
 - `docs`: remaining docs paths
 - `changelog-required`: infra + governance domains
 - `adr-required`: modules/bootstrap/gitops/workflows/scripts + governance domains

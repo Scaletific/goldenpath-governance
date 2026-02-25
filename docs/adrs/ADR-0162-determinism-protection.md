@@ -120,7 +120,7 @@ AI agents are **prohibited** from:
 - Modifying golden output files without explicit review
 - Merging PRs that fail required checks
 
-See [GOV-0017: TDD and Determinism Policy](../10-governance/policies/GOV-0017-tdd-and-determinism.md) for detailed enforcement rules.
+See [GOV-0017: TDD and Determinism Policy](../governance/policies/GOV-0017-tdd-and-determinism.md) for detailed enforcement rules.
 
 ## Rationale
 
@@ -146,9 +146,9 @@ ADR-0182 is the mechanics. ADR-0162 is the philosophy.
 ## References
 
 - [ADR-0182: TDD Philosophy](./ADR-0182-tdd-philosophy.md) - TDD mechanics and workflow
-- [GOV-0016: Testing Stack Matrix](../10-governance/policies/GOV-0016-testing-stack-matrix.md) - Tool definitions
-- [GOV-0017: TDD and Determinism Policy](../10-governance/policies/GOV-0017-tdd-and-determinism.md) - Enforcement policy
-- [26_AI_AGENT_PROTOCOLS](../80-onboarding/26_AI_AGENT_PROTOCOLS.md) - Agent operating rules
+- [GOV-0016: Testing Stack Matrix](../governance/policies/GOV-0016-testing-stack-matrix.md) - Tool definitions
+- [GOV-0017: TDD and Determinism Policy](../governance/policies/GOV-0017-tdd-and-determinism.md) - Enforcement policy
+- [26_AI_AGENT_PROTOCOLS](../onboarding/26_AI_AGENT_PROTOCOLS.md) - Agent operating rules
 
 ## Revision History
 

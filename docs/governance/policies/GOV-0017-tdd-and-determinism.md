@@ -335,8 +335,8 @@ make validate-schemas  # Validate YAML schemas
 
 - [ADR-0182: TDD Philosophy](../../adrs/ADR-0182-tdd-philosophy.md) - Architectural decision
 - [GOV-0016: Testing Stack Matrix](./GOV-0016-testing-stack-matrix.md) - Tool definitions
-- [27_TESTING_QUICKSTART](../../80-onboarding/27_TESTING_QUICKSTART.md) - Setup guide
-- [26_AI_AGENT_PROTOCOLS](../../80-onboarding/26_AI_AGENT_PROTOCOLS.md) - Agent requirements
+- [27_TESTING_QUICKSTART](../../onboarding/27_TESTING_QUICKSTART.md) - Setup guide
+- [26_AI_AGENT_PROTOCOLS](../../onboarding/26_AI_AGENT_PROTOCOLS.md) - Agent requirements
 
 ---
 

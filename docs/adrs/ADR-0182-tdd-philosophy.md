@@ -212,8 +212,8 @@ All exceptions must be:
 
 ## References
 
-- [GOV-0016: Testing Stack Matrix](../10-governance/policies/GOV-0016-testing-stack-matrix.md)
-- [GOV-0015: Build Pipeline Testing Matrix](../10-governance/policies/GOV-0015-build-pipeline-testing-matrix.md)
+- [GOV-0016: Testing Stack Matrix](../governance/policies/GOV-0016-testing-stack-matrix.md)
+- [GOV-0015: Build Pipeline Testing Matrix](../governance/policies/GOV-0015-build-pipeline-testing-matrix.md)
 - [Kent Beck - Test Driven Development: By Example](https://www.oreilly.com/library/view/test-driven-development/0321146530/)
 - [Martin Fowler - Test Coverage](https://martinfowler.com/bliki/TestCoverage.html)
 

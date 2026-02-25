@@ -137,7 +137,7 @@ bats tests/bats/*.bats --verbose-run
 
 ## Test Structure (Tiered)
 
-Per [GOV-0017](../10-governance/policies/GOV-0017-tdd-and-determinism.md), tests are organized by tier:
+Per [GOV-0017](../governance/policies/GOV-0017-tdd-and-determinism.md), tests are organized by tier:
 
 ```text
 tests/
@@ -345,7 +345,7 @@ pre-commit run --all-files  # Verify hooks work
 
 - [Determinism Protection (ADR-0162)](../adrs/ADR-0162-determinism-protection.md) - Strategic philosophy
 - [TDD Philosophy (ADR-0182)](../adrs/ADR-0182-tdd-philosophy.md) - TDD mechanics
-- [TDD and Determinism (GOV-0017)](../10-governance/policies/GOV-0017-tdd-and-determinism.md) - Enforcement policy
-- [Testing Stack Matrix (GOV-0016)](../10-governance/policies/GOV-0016-testing-stack-matrix.md) - Tool definitions
+- [TDD and Determinism (GOV-0017)](../governance/policies/GOV-0017-tdd-and-determinism.md) - Enforcement policy
+- [Testing Stack Matrix (GOV-0016)](../governance/policies/GOV-0016-testing-stack-matrix.md) - Tool definitions
 - [PR Gates](./24_PR_GATES.md)
 - [AI Agent Protocols](./26_AI_AGENT_PROTOCOLS.md)
