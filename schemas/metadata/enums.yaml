@@ -1,0 +1,389 @@
+version: 1
+
+domains:
+  - platform-core
+  - delivery
+  - identity
+  - catalog
+  - observability
+  - governance
+  - security
+  - cost
+  - governance-routing
+  - platform-governance
+
+components:
+  - infra
+  - ci
+  - gitops
+  - argo
+  - backstage
+  - kong
+  - agents
+  - metadata-graph
+  - policies
+  - ecr
+  - github
+  - keycloak
+
+adr_status:
+  - proposed
+  - accepted
+  - active
+  - deprecated
+  - superseded
+
+owners:
+  - platform-team
+  - security-team
+  - operations-team
+  - sre-team
+  - unknown
+  - app-team
+  - database-team
+
+lifecycle:
+  - draft
+  - active
+  - deprecated
+  - archived
+  - released
+  - planned
+  - approved
+  - accepted
+  - superseded
+  - proposed
+
+status:
+  - proposed
+  - accepted
+  - active
+  - deprecated
+  - superseded
+  - approved
+  - planned
+  - released
+
+artifact_type:
+  - adr
+  - policy
+  - governance
+  - contract
+  - runbook
+  - changelog
+  - catalog
+  - template
+  - report
+  - documentation
+  - guide
+  - strategy
+  - runlog
+  - operational-log
+  - implementation-plan
+  - extension-capability
+  - onboarding
+
+adr_categories:
+  - platform
+  - delivery
+  - identity
+  - catalog
+  - observability
+  - governance
+  - security
+  - finance
+  - runtime
+  - architecture
+  - infrastructure
+  - onboarding
+  - compliance
+  - changelog
+  - testing
+  - app-team
+  - runbooks
+
+risk_profile_coupling_risk:
+  - none
+  - low
+  - medium
+  - high
+
+rollback_strategy:
+  # Core strategies
+  - git-revert           # Revert changes via git
+  - redeploy             # Redeploy previous version
+  - manual               # Manual intervention required
+  # Infrastructure strategies
+  - terraform-destroy    # Destroy and recreate via Terraform
+  - helm-rollback        # Rollback Helm release
+  - argocd-sync          # Re-sync via ArgoCD
+  # Operational strategies
+  - rerun-validation     # Re-run validation script
+  - rerun-teardown       # Re-run teardown procedure
+  # Special cases
+  - not-applicable       # No rollback needed (docs, analysis)
+  - none                 # Explicitly no rollback
+
+observability_tier:
+  - bronze
+  - silver
+  - gold
+
+risk_profile_production_impact:
+  - none
+  - low
+  - medium
+  - high
+
+risk_profile_security_risk:
+  - none
+  - low
+  - medium
+  - high
+  - access
+
+environments:
+  - dev
+  - test
+  - staging
+  - prod
+  - ephemeral
+
+eks_environments:
+  - dev
+  - test
+  - staging
+  - prod
+
+eks_modes:
+  - cluster-only
+  - bootstrap-only
+  - cluster+bootstrap
+
+eks_node_tiers:
+  - small
+  - medium
+  - large
+  - xlarge
+
+kubernetes_versions:
+  - "1.28"
+  - "1.29"
+  - "1.30"
+
+eks_capacity_types:
+  - ON_DEMAND
+  - SPOT
+
+eks_gitops_controllers:
+  - argocd
+
+eks_bootstrap_profiles:
+  - core-tooling
+  - tooling-plus-sample-apps
+
+eks_ingress_providers:
+  - kong
+
+eks_aws_lb_types:
+  - nlb
+  - alb
+
+approval_tiers:
+  - self-serve
+  - platform-approval
+  - security-approval
+  - platform-and-security
+  - change-advisory
+
+reviewer_groups:
+  - platform-team
+  - security-team
+  - operations-team
+  - sre-team
+  - unknown
+  - app-team
+  - database-team
+
+service_classes:
+  - kubernetes-clusters
+  - container-registries
+  - storage-s3
+  - storage-efs
+  - storage-ebs
+  - databases-dynamodb
+  - databases-rds
+  - networking-vpc
+  - compute-vms
+  - secrets-management
+
+vq_class:
+  - 🔴 HV/HQ
+  - 🟡 HV/LQ
+  - 🔵 MV/HQ
+  - ⚫ LV/LQ
+
+user_types:
+  - regular-user
+  - service-account
+  - system-admin
+
+system_types:
+  - service-ecosystem
+  - data-pipeline
+  - platform-infrastructure
+
+backstage_kinds:
+  - Component
+  - System
+  - API
+  - Resource
+  - Location
+  - Template
+  - Domain
+  - Group
+  - User
+
+resource_types:
+  - cloud-storage
+  - compute-instance
+  - database-cluster
+  - container-registry
+
+api_types:
+  - openapi
+  - graphql
+  - grpc
+  - asyncapi
+
+# AI collaboration governance (roles, modes, and validation)
+ai_authority_tier:
+  - tier0-read-reason
+  - tier1-write-isolated
+  - tier2-safe-execute
+  - tier3-human-only
+
+ai_delegation_mode:
+  - full-delegation
+  - copilot
+  - human-only
+
+ai_execution_role:
+  # Existing (baseline roles)
+  - junior-engineer
+  - refactorer
+  - auditor
+  - automation-agent
+  - advisor
+  # Recommended (operational roles)
+  - triager
+  - documentarian
+  - compliance-checker
+  - release-scribe
+  - threat-modeler
+
+ai_context_tier:
+  - execution
+  - refinement
+  - judgment
+
+ai_task_domain:
+  - docs
+  - code
+  - infra
+  - governance
+  - security
+  - observability
+  - ci-cd
+
+ai_validation_level:
+  - not-run
+  - local-checks
+  - ci-green
+  - prod-verified
+
+value_intent:
+  - cost_reduction
+  - risk_reduction
+  - speed_enablement
+  - reliability
+  - compliance
+  - developer_experience
+  - revenue_enablement
+
+automation_confidence:
+  - manual
+  - assisted
+  - supervised
+  - autonomous
+
+decision_weight:
+  - reversible
+  - costly_to_reverse
+  - foundational
+
+# --- Security Contract Enums ---
+# These govern the SecretRequest kind and its conditional logic.
+security:
+  secret_types:
+    description: "Classification for policy/rotation defaults."
+    values:
+      - database-credentials
+      - api-key
+      - oauth-client
+      - webhook-secret
+      - signing-key
+      - encryption-key
+      - tls-private-key
+      - container-registry-credential
+      - third-party-token
+      - generic
+
+  risk_tiers:
+    description: "Risk classification for approval gating."
+    values:
+      - low
+      - medium
+      - high
+
+  rotation_classes:
+    description: "Rotation posture requirement."
+    values:
+      - none
+      - standard
+      - high
+
+  lifecycle_status:
+    description: "Operational state of the secret."
+    values:
+      - active
+      - deprecated
+      - decommission_requested
+      - decommissioned
+
+# --- RDS Request Enums ---
+# These govern the RDS Request schema and size mappings.
+rds:
+  instance_sizes:
+    description: "RDS instance size tiers for request schema."
+    values:
+      - small    # db.t3.micro - dev/test
+      - medium   # db.t3.small - staging
+      - large    # db.t3.medium - prod light
+      - xlarge   # db.r6g.large - prod heavy
+
+  engines:
+    description: "Supported database engines."
+    values:
+      - postgres
+
+  request_status:
+    description: "RDS request lifecycle states."
+    values:
+      - pending
+      - approved
+      - provisioning
+      - active
+      - failed
+      - decommissioning
+      - decommissioned

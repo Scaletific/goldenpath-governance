@@ -1,0 +1,43 @@
+id: ECR_RISK_SETTINGS
+title: ECR Risk-Based Security Settings
+type: policy
+category: security
+status: active
+owner: platform-team
+version: '1.0'
+risk_profile:
+  production_impact: low
+  security_risk: none
+  coupling_risk: low
+reliability:
+  rollback_strategy: git-revert
+  observability_tier: bronze
+lifecycle:
+  supported_until: 2028-01-01
+  breaking_change: false
+relates_to:
+  - ADR-0092
+  - ADR-0093
+---
+# ECR Risk-Based Security Settings
+# This file is the source of truth for documentation and Terraform enforcement.
+
+policies:
+  low:
+    encryption: "AES256 (AWS-managed)"
+    mutability: "MUTABLE"
+    retention: "20 images"
+    use_for: "Development, testing, experiments"
+    image_scanning: true
+  medium:
+    encryption: "AES256 (AWS-managed)"
+    mutability: "MUTABLE"
+    retention: "30 images"
+    use_for: "Staging, internal tools, non-critical production"
+    image_scanning: true
+  high:
+    encryption: "KMS (customer-managed keys)"
+    mutability: "IMMUTABLE"
+    retention: "50 images"
+    use_for: "Production, customer-facing, PCI/HIPAA"
+    image_scanning: true

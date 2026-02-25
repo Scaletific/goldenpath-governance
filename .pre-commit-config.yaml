@@ -1,0 +1,91 @@
+# Governance-focused pre-commit hooks (subset of full platform config)
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.39.0
+    hooks:
+      - id: markdownlint
+        args: ["--config", ".github/linters/markdownlint.yml"]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.2
+    hooks:
+      - id: gitleaks
+        args: ["--redact"]
+
+  - repo: local
+    hooks:
+      - id: doc-metadata-autofix
+        name: Doc Metadata Auto-Fix
+        entry: python3 scripts/standardize_metadata.py
+        language: python
+        additional_dependencies:
+          - pyyaml
+        stages: [pre-commit]
+        files: ^docs/.*\.md$
+        pass_filenames: true
+      - id: emoji-enforcer
+        name: Emoji Usage Policy Enforcer
+        entry: python3 scripts/enforce_emoji_policy.py
+        language: python
+        files: \.(md|yaml|yml)$
+        pass_filenames: true
+      - id: generate-adr-index
+        name: Auto-Heal ADR Index
+        entry: python3 scripts/generate_adr_index.py
+        language: python
+        additional_dependencies: [pyyaml]
+        always_run: true
+        pass_filenames: false
+      - id: generate-script-index
+        name: Auto-Heal Script Index
+        entry: python3 scripts/generate_script_index.py
+        language: python
+        additional_dependencies: [pyyaml]
+        always_run: true
+        pass_filenames: false
+      - id: generate-workflow-index
+        name: Auto-Heal Workflow Index
+        entry: python3 scripts/generate_workflow_index.py
+        language: python
+        additional_dependencies: [pyyaml]
+        always_run: true
+        pass_filenames: false
+      - id: generate-script-matrix
+        name: Auto-Heal Script Matrix
+        entry: python3 scripts/generate_script_matrix.py
+        language: python
+        additional_dependencies: [pyyaml]
+        always_run: true
+        pass_filenames: false
+      - id: validate-script-governance
+        name: Validate Script Governance
+        entry: python3 scripts/validate_scripts_tested.py
+        language: python
+        additional_dependencies: [pyyaml]
+        files: ^scripts/.*\.(py|sh|bash)$
+        pass_filenames: true
+      - id: validate-agent-reports
+        name: Validate Agent Report Format (ADR-0192)
+        entry: python3 scripts/validate_agent_reports.py
+        language: python
+        files: ^(agent-reports|\.claude/agent-reports)/.*\.md$
+        pass_filenames: true
+      - id: check-session-writer
+        name: Check Session Writer Ran (ADR-0192)
+        entry: bash scripts/check_session_writer.sh
+        language: system
+        always_run: true
+        pass_filenames: false

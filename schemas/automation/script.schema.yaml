@@ -1,0 +1,101 @@
+---
+id: SCRIPT_SCHEMA_V1
+title: Script Metadata Contract
+type: schema
+owner: platform-team
+status: active
+version: 1
+---
+
+script:
+  required_fields:
+    - id
+    - type
+    - owner
+    - status
+    - test
+    - dry_run
+    - risk_profile
+
+  fields:
+    id:
+      type: string
+      pattern: "^SCRIPT-[0-9]{4}$|^[a-z0-9][a-z0-9_-]{2,}$"
+
+    type:
+      type: string
+      enum:
+        - script
+
+    owner:
+      type: string
+      enum:
+        - platform-team
+        - app-team
+        - security-team
+
+    status:
+      type: string
+      enum:
+        - active
+        - deprecated
+
+    maturity:
+      type: integer
+      min: 0
+      max: 3
+
+    dry_run:
+      type: object
+      required_fields:
+        - supported
+      fields:
+        supported:
+          type: boolean
+        command_hint:
+          type: string
+          optional: true
+
+    test:
+      type: object
+      required_fields:
+        - runner
+        - command
+        - evidence
+      fields:
+        runner:
+          type: string
+          enum:
+            - pytest
+            - bats
+            - shellcheck
+            - custom
+        command:
+          type: string
+          min_length: 5
+        evidence:
+          type: string
+          enum:
+            - declared      # exists, but not enforced by CI proof yet
+            - ci            # proof exists in CI for this SHA
+            - manual        # allowed only for low-risk scripts
+        required_on_pr:
+          type: boolean
+          optional: true
+
+    risk_profile:
+      type: object
+      required_fields:
+        - production_impact
+        - security_risk
+        - coupling_risk
+      fields:
+        production_impact:
+          type: string
+          enum: [none, low, medium, high]
+        security_risk:
+          type: string
+          enum: [none, low, medium, high]
+        coupling_risk:
+          type: string
+          enum: [low, medium, high]

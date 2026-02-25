@@ -1,0 +1,152 @@
+name: Script Certification Gate
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/**/*.py'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  enforce-certification:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Detect new scripts
+        id: detect
+        run: |
+          # Get list of new Python scripts in this PR
+          NEW_SCRIPTS=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }}...HEAD | grep '^scripts/.*\.py$' || echo "")
+
+          if [ -z "$NEW_SCRIPTS" ]; then
+            echo "no_new_scripts=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "new_scripts<<EOF" >> $GITHUB_OUTPUT
+          echo "$NEW_SCRIPTS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Check certification requirements
+        if: steps.detect.outputs.no_new_scripts != 'true'
+        id: check
+        run: |
+          python3 .githooks/pre-commit-script-certification || echo "failed=true" >> $GITHUB_OUTPUT
+
+      - name: Post PR comment on failure
+        if: steps.check.outputs.failed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `## ⚠️ Script Certification Required
+
+            This PR adds new scripts that don't meet certification standards.
+
+            ###  Requirements
+
+            Every new script must have **at least one** of:
+            - ✅ Unit test in \`tests/unit/test_<script_name>.py\`
+            - ✅ Dry-run support (\`--dry-run\` flag)
+
+            **Plus:**
+            - ✅ Structured docstring (Purpose, Achievement, Value, Relates-To)
+
+            ### 🛠️ Quick Fixes
+
+            **Option 1:** Use the scaffold utility
+            \`\`\`bash
+            python3 scripts/scaffold_test.py --script <your_script>.py
+            \`\`\`
+
+            **Option 2:** Add a unit test manually
+            \`\`\`bash
+            cp tests/templates/UNIT_TEST_TEMPLATE.py tests/unit/test_<your_script>.py
+            # Edit the test file
+            \`\`\`
+
+            **Option 3:** Add dry-run support
+            \`\`\`python
+            import argparse
+
+            parser = argparse.ArgumentParser()
+            parser.add_argument("--dry-run", action="store_true")
+            args = parser.parse_args()
+
+            if args.dry_run:
+                print("[DRY-RUN] Would perform action...")
+                return
+            \`\`\`
+
+            ### 📖 Documentation
+            - [Script Certification Audit](https://github.com/${{ github.repository }}/blob/development/docs/governance/SCRIPT_CERTIFICATION_AUDIT.md)
+            - [Confidence Matrix](https://github.com/${{ github.repository }}/blob/development/docs/antig-implementations/CONFIDENCE_MATRIX.md)
+
+            ---
+
+            **Why this gate exists:** It prevents technical debt and ensures all automation is maintainable and safe.
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Fail if certification missing
+        if: steps.check.outputs.failed == 'true'
+        run: |
+          echo " Script certification gate failed"
+          echo "See PR comment for remediation steps"
+          exit 1
+
+      - name: Post success comment
+        if: steps.detect.outputs.no_new_scripts != 'true' && steps.check.outputs.failed != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `## ✅ Script Certification Passed
+
+            All new scripts meet certification requirements!
+
+            - Structured documentation ✅
+            - Unit tests OR dry-run support ✅
+
+            Mean Confidence Score maintained.
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Record certification metrics
+        if: always() && steps.detect.outputs.no_new_scripts != 'true'
+        env:
+          RESULT: ${{ steps.check.outputs.failed == 'true' && 'fail' || 'pass' }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # Record pass/fail metrics for tracking certification gate effectiveness
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "::notice::Certification gate result: $RESULT for PR #$PR_NUMBER at $TIMESTAMP"
+
+          # Output metrics summary
+          if [ "$RESULT" = "pass" ]; then
+            echo "::notice title=Certification::All scripts certified successfully"
+          else
+            echo "::warning title=Certification::Scripts require certification remediation"
+          fi

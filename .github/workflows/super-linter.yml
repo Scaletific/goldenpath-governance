@@ -1,0 +1,34 @@
+# Owner: platform
+name: Quality - Docs & Config Linter
+
+on:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint Markdown & YAML
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Lint YAML
+        run: yamllint . -c .yamllint
+
+      - name: Lint Markdown
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          config: .markdownlint.json
+
+      - name: Runbook link
+        if: always()
+        run: |
+          echo "Runbook: docs/runbooks/RB-0014-repo-health-and-hygiene.md" >> "${GITHUB_STEP_SUMMARY}"

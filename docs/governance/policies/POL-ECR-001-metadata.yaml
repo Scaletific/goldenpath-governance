@@ -1,0 +1,77 @@
+version: "1.0"
+id: POL-ECR-001
+policy_id: POL-ECR-001
+name: ECR Registry Metadata Policy
+category: governance
+owner: platform-team
+status: active
+
+description: |
+  All ECR registries MUST have complete metadata including ID, owner, and risk level.
+  This policy ensures every registry is governed and traceable.
+
+rules:
+  - id: POL-ECR-001-R01
+    name: Metadata Required
+    description: All registries must have metadata object
+    severity: critical
+    check:
+      type: exists
+      path: metadata
+    remediation: Add metadata object with id, owner, and risk fields
+
+  - id: POL-ECR-001-R02
+    name: Owner Required
+    description: All registries must have an owner team
+    severity: critical
+    check:
+      type: exists
+      path: metadata.owner
+    remediation: Set metadata.owner to team name (e.g., app-team-wordpress)
+
+  - id: POL-ECR-001-R03
+    name: ID Format
+    description: Registry ID must be UPPERCASE_WITH_UNDERSCORES
+    severity: high
+    check:
+      type: regex
+      path: metadata.id
+      pattern: "^REGISTRY_[A-Z0-9_]+$"
+    remediation: Use format REGISTRY_UPPERCASE_NAME (e.g., REGISTRY_WORDPRESS_PLATFORM)
+
+  - id: POL-ECR-001-R04
+    name: Risk Level Required
+    description: All registries must have a risk level
+    severity: critical
+    check:
+      type: enum
+      path: metadata.risk
+      values: [low, medium, high]
+    remediation: Set metadata.risk to low, medium, or high
+
+  - id: POL-ECR-001-R05
+    name: Status Required
+    description: All registries must have a status
+    severity: medium
+    check:
+      type: enum
+      path: metadata.status
+      values: [active, deprecated, pending]
+    remediation: Set metadata.status to active, deprecated, or pending
+
+enforcement:
+  strategy: automated
+  prevention:
+    - Terraform preconditions validate metadata
+    - GitHub Actions workflow validates inputs
+  detection:
+    - Daily compliance checker scans all registries
+    - Reports violations to platform team
+  remediation:
+    - Automated GitHub issue creation
+    - Slack notifications to owners
+
+related:
+  - ADR-0092
+  - ADR-0093
+  - ADR-0096

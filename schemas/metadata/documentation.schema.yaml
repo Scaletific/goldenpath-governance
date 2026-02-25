@@ -1,0 +1,208 @@
+# schemas/metadata/metadata.schema.yaml
+#
+# Purpose:
+# - Validate metadata objects used as:
+#   1) Directory defaults (e.g., docs/**/metadata.yaml)
+#   2) File-level frontmatter overrides (e.g., docs/adrs/*.md)
+#
+# Inheritance model (enforced by validator):
+# - Effective metadata = merge(parent_dir_defaults..., file_frontmatter_overrides)
+# - File overrides win.
+# - Some fields should NOT inherit (event-specific fields). See "inheritance" section.
+
+version: 1
+type: object
+additionalProperties: false
+
+properties:
+  # -------- Identity / classification --------
+  id:
+    type: string
+    description: "Optional globally unique identifier for the artifact (ADR-0001, POL-0003, etc.). Usually file-level."
+
+  title:
+    type: string
+    description: "Human title for the artifact. Usually file-level."
+
+  type:
+    type: string
+    description: "Artifact type. Helps routing and validation."
+    enum_from: artifact_type
+
+  domain:
+    type: string
+    description: "Primary domain classification. Inherit from directory defaults if omitted."
+    enum_from: domains
+    default: platform-core
+
+  applies_to:
+    type: array
+    description: "Components this artifact affects. Inherit/extend from directory defaults if omitted."
+    items:
+      type: string
+      enum_from: components
+
+  owner:
+    type: string
+    description: "Owning team or role. Inherit from directory defaults if omitted."
+    enum_from: owners
+    default: platform-team
+
+  category:
+    type: string
+    description: "ADR/Policy category for classification."
+    enum_from: adr_categories
+
+  lifecycle:
+    type: string
+    description: "Lifecycle stage of this artifact or its applicability."
+    enum_from: lifecycle
+    default: active
+
+  status:
+    type: string
+    description: "Decision/document status (primarily ADRs/policies). File-level; may inherit if used for directory grouping."
+    enum_from: status
+
+  exempt:
+    type: boolean
+    description: "Safety Valve: If true, strict governance rules (like mandatory detail) are bypassed for scratchpads."
+    default: false
+
+  # -------- Risk / reliability (works well as defaults) --------
+  risk_profile:
+    type: object
+    additionalProperties: false
+    default:
+      production_impact: low
+      security_risk: none
+      coupling_risk: low
+    properties:
+      production_impact:
+        type: string
+        enum_from: risk_profile_production_impact
+      security_risk:
+        type: string
+        enum_from: risk_profile_security_risk
+      coupling_risk:
+        type: string
+        enum_from: risk_profile_coupling_risk
+
+  reliability:
+    type: object
+    additionalProperties: false
+    default:
+      rollback_strategy: git-revert
+      observability_tier: bronze
+      maturity: 1
+    properties:
+      rollback_strategy:
+        type: string
+        enum_from: rollback_strategy
+      observability_tier:
+        type: string
+        enum_from: observability_tier
+      maturity:
+        type: integer
+        minimum: 1
+        maximum: 5
+        description: "Confidence Rating (1-5 stars). See CONFIDENCE_MATRIX.md."
+
+  # -------- Time / versioning --------
+  date:
+    type: string
+    description: "YYYY-MM-DD. Usually file-level (ADR date, changelog entry date)."
+    pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+
+  supported_until:
+    type: string
+    description: "YYYY-MM-DD. Often directory-level for doc sets or policies."
+    pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+
+  last_governance_review:
+    type: string
+    description: "YYYY-MM-DD. Used for Active Governance TTL."
+    pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+
+  schema_version:
+    type: integer
+    description: "Governance contract version for this file."
+    default: 1
+
+  # -------- Relationships (graph-friendly) --------
+  relates_to:
+    type: array
+    description: "Explicit references to other artifacts (ids, paths, URLs)."
+    items:
+      type: string
+
+  supersedes:
+    type: array
+    description: "IDs of artifacts this supersedes (ADR)."
+    items:
+      type: string
+
+  superseded_by:
+    type: array
+    description: "IDs of artifacts that supersede this (ADR)."
+    items:
+      type: string
+
+  tags:
+    type: array
+    description: "Free-form tags are allowed but should be treated as non-authoritative. Prefer enums for routing."
+    items:
+      type: string
+
+  # -------- Inheritance controls --------
+  inheritance:
+    type: object
+    description: "Optional controls used by validator for inheritance/merging behavior."
+    additionalProperties: false
+    properties:
+      mode:
+        type: string
+        description: "How defaults apply to children in this directory."
+        enum:
+          - inherit
+          - none
+      merge_strategy:
+        type: string
+        description: "How arrays merge when inheriting (validator-enforced)."
+        enum:
+          - replace
+          - union
+
+  # -------- Value Quantification (VQ) --------
+  value_quantification:
+    type: object
+    description: "Granular metrics used to justify technical work and support resource allocation."
+    additionalProperties: false
+    properties:
+      vq_class:
+        type: string
+        description: "The Value/Quality classification (e.g.,  🔴 HV/HQ = High Value, High Quality)."
+        enum_from: vq_class
+      impact_tier:
+        type: string
+        description: "The business importance of the asset (Tier 1 = Mission Critical/High ROI)."
+        enum:
+          - tier-1
+          - tier-2
+          - tier-3
+          - low
+          - 🔴 HV/HQ
+          - 🟡 HV/LQ
+          - 🔵 MV/HQ
+          - ⚫ LV/LQ
+      potential_savings_hours:
+        type: number
+        description: "Estimated hours saved per use or per successful 'Heal'."
+
+required:
+  - id
+  - type
+  - owner
+  - risk_profile
+  - reliability
+  - lifecycle

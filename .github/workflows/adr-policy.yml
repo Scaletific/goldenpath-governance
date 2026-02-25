@@ -1,0 +1,65 @@
+# Owner: platform
+name: Policy - ADR Policy
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - labeled
+      - unlabeled
+      - edited
+      - ready_for_review
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  adr-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce label-gated ADR entry
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const requiredLabel = "adr-required";
+            const entryRegex = /^docs\/adrs\/ADR-\d{4}.*\.md$/;
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+
+            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+              owner,
+              repo,
+              issue_number,
+            });
+
+            const hasLabel = labels.some((label) => label.name === requiredLabel);
+            if (!hasLabel) {
+              core.info("ADR label not set; skipping.");
+              return;
+            }
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number: issue_number,
+              per_page: 100,
+            });
+
+            const hasEntry = files.some((file) => entryRegex.test(file.filename));
+            if (!hasEntry) {
+              core.setFailed(
+                "Missing ADR entry. Add docs/adrs/ADR-####-short-title.md.",
+              );
+              return;
+            }
+
+            core.info("ADR entry detected.");
+      - name: Runbook link
+        if: always()
+        run: |
+          echo "Template: docs/adrs/02_adr_template.md" >> "${GITHUB_STEP_SUMMARY}"

@@ -1,0 +1,64 @@
+version: 1
+
+# THE CONCLUSIVE GOVERNANCE MATRIX
+# Maps every value from enums.yaml to a mandatory review path.
+# platform-team is a mandatory reviewer for all paths.
+decision_routing:
+  by_domain:
+    platform-core:
+      required_reviewers: ["platform-team"]
+      required_artifacts: ["adr", "changelog"]
+    identity:
+      required_reviewers: ["platform-team", "security-team"]
+      required_artifacts: ["adr", "changelog"]
+    security:
+      required_reviewers: ["platform-team", "security-team"]
+      required_artifacts: ["adr", "changelog"]
+    governance:
+      required_reviewers: ["platform-team", "security-team"]
+      required_artifacts: ["adr", "changelog"]
+    delivery:
+      required_reviewers: ["platform-team", "operations-team"]
+      required_artifacts: ["changelog"]
+    observability:
+      required_reviewers: ["platform-team", "sre-team"]
+      required_artifacts: ["changelog"]
+    catalog:
+      required_reviewers: ["platform-team"]
+      required_artifacts: ["changelog"]
+    cost:
+      required_reviewers: ["platform-team"]
+      required_artifacts: ["report"]
+    runtime:
+      required_reviewers: ["platform-team"]
+      required_artifacts: ["adr", "changelog"]
+
+  # Cross-cutting based on affected components
+  by_component:
+    infra:
+      required_reviewers: ["platform-team"]
+      required_artifacts: ["adr"]
+    ci:
+      required_reviewers: ["platform-team"]
+      required_artifacts: ["adr"]
+    gitops:
+      required_reviewers: ["platform-team", "operations-team"]
+      required_artifacts: ["adr"]
+    argo:
+      required_reviewers: ["platform-team", "operations-team"]
+      required_artifacts: ["adr"]
+    backstage:
+      required_reviewers: ["platform-team"]
+      required_artifacts: ["adr"]
+    agents:
+      required_reviewers: ["platform-team", "security-team"]
+      required_artifacts: ["adr", "changelog"]
+    policies:
+      required_reviewers: ["platform-team", "security-team"]
+      required_artifacts: ["adr", "policy"]
+    keycloak:
+      required_reviewers: ["platform-team", "security-team"]
+      required_artifacts: ["adr"]
+    metadata-graph:
+      required_reviewers: ["platform-team"]
+      required_artifacts: ["adr"]

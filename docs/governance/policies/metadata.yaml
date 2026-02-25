@@ -1,0 +1,15 @@
+---
+id: APPS_POLICIES_METADATA
+title: metadata
+type: policy
+lifecycle:
+  supported_until: '2028-01-01'
+reliability:
+  rollback_strategy: git-revert
+  observability_tier: bronze
+  maturity: 1
+value_quantification:
+  vq_class: 🔴 HV/HQ
+  impact_tier: tier-1
+  potential_savings_hours: 2.0
+category: compliance

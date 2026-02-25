@@ -1,0 +1,89 @@
+# Owner: platform
+# Relates-To: 85-how-it-works/governance/PR_GUARDRAILS.md
+name: Policy - PR Guardrails
+
+on:
+  pull_request:
+    branches:
+      - main
+      - development
+    types: [opened, edited, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  pr-guardrails:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR metadata
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              per_page: 100,
+            });
+
+            const labels = pr.labels.map(l => l.name);
+            const changedFiles = files.map(f => f.filename).join('\n');
+            const additions = files.reduce((sum, f) => sum + f.additions, 0);
+            const deletions = files.reduce((sum, f) => sum + f.deletions, 0);
+
+            core.setOutput('body', pr.body || '');
+            core.setOutput('labels', JSON.stringify(labels));
+            core.setOutput('author', pr.user.login);
+            core.setOutput('base', pr.base.ref);
+            core.setOutput('files', changedFiles);
+            core.setOutput('additions', additions.toString());
+            core.setOutput('deletions', deletions.toString());
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Run PR Guardrails Validator
+        env:
+          PR_BODY: ${{ steps.pr.outputs.body }}
+          PR_LABELS: ${{ steps.pr.outputs.labels }}
+          PR_AUTHOR: ${{ steps.pr.outputs.author }}
+          PR_BASE: ${{ steps.pr.outputs.base }}
+          CHANGED_FILES: ${{ steps.pr.outputs.files }}
+          ADDITIONS: ${{ steps.pr.outputs.additions }}
+          DELETIONS: ${{ steps.pr.outputs.deletions }}
+        run: |
+          pip install -r requirements.txt
+          python scripts/pr_guardrails.py
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## PR Guardrails" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Labels:** ${{ steps.pr.outputs.labels }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** ${{ steps.pr.outputs.author }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Files Changed:** $(echo '${{ steps.pr.outputs.files }}' | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Conditional Bypass Labels" >> $GITHUB_STEP_SUMMARY
+          echo "| Label | Condition |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`docs-only\` | All changed files are \`.md\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`typo-fix\` | < 50 lines, text files only |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`hotfix\` | Target main + platform-team |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`build_id\` | Terraform files + platform-team |" >> $GITHUB_STEP_SUMMARY

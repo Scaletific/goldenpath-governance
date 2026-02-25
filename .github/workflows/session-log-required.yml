@@ -1,0 +1,89 @@
+# Owner: platform-team
+# Relates-To: GOV-0034-ai-agent-governance, 26_AI_AGENT_PROTOCOLS, session_capture_template, session_summary_template
+# Last-Validated: 2026-01-27
+name: Session Log Requirement
+
+on:
+  pull_request:
+    # No path filter - runs on all PRs. The Python script below
+    # skips gracefully when non-critical paths are changed.
+  workflow_dispatch:  # Manual testing
+
+jobs:
+  require-session-logs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require session capture + session summary updates
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import os
+          import subprocess
+          import sys
+
+          def git(*args: str) -> str:
+              return subprocess.check_output(["git", *args], text=True).strip()
+
+          base_ref = os.environ.get("GITHUB_BASE_REF", "")
+          base = ""
+          if base_ref:
+              try:
+                  base = git("merge-base", f"origin/{base_ref}", "HEAD")
+              except subprocess.CalledProcessError:
+                  base = ""
+          if not base:
+              try:
+                  base = git(
+                      "merge-base",
+                      "HEAD",
+                      "origin/" + git("symbolic-ref", "--short", "refs/remotes/origin/HEAD").split("/")[-1],
+                  )
+              except subprocess.CalledProcessError:
+                  print(" Could not determine base branch. Skipping validation.")
+                  sys.exit(0)
+
+          changed = git("diff", "--name-only", f"{base}..HEAD").splitlines()
+
+          # Require session capture + summary updates when key areas change.
+          critical_prefixes = (
+              ".github/workflows/",
+              "gitops/",
+              "bootstrap/",
+              "modules/",
+              "scripts/",
+              "docs/governance/",
+              "docs/adrs/",
+              "docs/70-operations/runbooks/",
+          )
+
+          if not any(path.startswith(critical_prefixes) for path in changed):
+              print("✅ No critical paths changed; session log requirement skipped.")
+              sys.exit(0)
+
+          has_capture = any(
+              path.startswith("session_capture/")
+              and path.endswith(".md")
+              and not path.endswith("_template.md")
+              for path in changed
+          )
+          has_summary = "session_summary/agent_session_summary.md" in changed
+
+          if not has_capture:
+              print("🚫 Session capture update required for changes in critical paths.")
+              print("   Add an append-only update under session_capture/.")
+              sys.exit(1)
+
+          if not has_summary:
+              print("🚫 Session summary update required for changes in critical paths.")
+              print("   Append to session_summary/agent_session_summary.md.")
+              sys.exit(1)
+
+          print("✅ Session capture and session summary updates detected.")
+          PY

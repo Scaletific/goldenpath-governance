@@ -1,0 +1,47 @@
+# Owner: platform-team
+# Purpose: Ensure human oversight for critical infrastructure and automation
+#
+# AGENT TRUST ARCHITECTURE (ADR-0164)
+# ===================================
+# This file defines resources that require HUMAN approval.
+# AI agents cannot approve changes to these paths - they can only propose.
+# This prevents agents from gaming the system by weakening their own constraints.
+
+# Global owners for everything that isn't specifically claimed
+*       @[GITHUB_ORG]
+
+# ============================================================================
+# PROTECTED RESOURCES - Agent Trust Boundaries (ADR-0164)
+# ============================================================================
+# These paths define the "rules of the game" for agents.
+# Changes here require human review to prevent privilege escalation.
+
+# This file itself - agents cannot modify approval authority
+.github/CODEOWNERS    @[GITHUB_ORG]
+
+# CI/CD workflows - agents cannot modify enforcement mechanisms
+.github/workflows/    @[GITHUB_ORG]
+
+# Golden files - agents cannot change expected behavior without human approval
+tests/golden/fixtures/expected/  @[GITHUB_ORG]
+
+# Trust and governance policies
+docs/adrs/ADR-0164-*             @[GITHUB_ORG]
+docs/adrs/ADR-0163-*             @[GITHUB_ORG]
+docs/adrs/ADR-0162-*             @[GITHUB_ORG]
+docs/governance/policies/     @[GITHUB_ORG]
+
+# Agent protocols - agents cannot modify their own rules
+docs/onboarding/26_AI_AGENT_PROTOCOLS.md  @[GITHUB_ORG]
+
+# ============================================================================
+# STANDARD GOVERNANCE
+# ============================================================================
+
+# Automation & Governance
+scripts/              @[GITHUB_ORG]
+docs/adrs/            @[GITHUB_ORG]
+
+# Infrastructure
+envs/                 @[GITHUB_ORG]
+modules/              @[GITHUB_ORG]

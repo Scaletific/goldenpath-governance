@@ -1,0 +1,91 @@
+version: "1.0"
+id: POL-ECR-003
+policy_id: POL-ECR-003
+name: ECR Lifecycle Retention Policy
+category: cost-optimization
+owner: platform-team
+status: active
+
+description: |
+  All ECR registries MUST have lifecycle policies to prevent unbounded storage costs.
+  Retention limits are based on registry risk level.
+
+rules:
+  - id: POL-ECR-003-R01
+    name: Lifecycle Policy Required
+    description: All registries must have a lifecycle policy
+    severity: high
+    check:
+      type: exists
+      path: lifecycle_policy
+    remediation: Enable lifecycle policy in Terraform module
+
+  - id: POL-ECR-003-R02
+    name: High Risk Retention
+    description: High-risk registries must keep 50 images
+    severity: medium
+    applies_when:
+      path: metadata.risk
+      equals: high
+    check:
+      type: equals
+      path: lifecycle_policy.keep_image_count
+      value: 50
+    remediation: Set keep_image_count to 50 for high-risk registries
+
+  - id: POL-ECR-003-R03
+    name: Medium Risk Retention
+    description: Medium-risk registries must keep 30 images
+    severity: medium
+    applies_when:
+      path: metadata.risk
+      equals: medium
+    check:
+      type: equals
+      path: lifecycle_policy.keep_image_count
+      value: 30
+    remediation: Set keep_image_count to 30 for medium-risk registries
+
+  - id: POL-ECR-003-R04
+    name: Low Risk Retention
+    description: Low-risk registries must keep 20 images
+    severity: medium
+    applies_when:
+      path: metadata.risk
+      equals: low
+    check:
+      type: equals
+      path: lifecycle_policy.keep_image_count
+      value: 20
+    remediation: Set keep_image_count to 20 for low-risk registries
+
+  - id: POL-ECR-003-R05
+    name: No Untagged Images
+    description: Untagged images should be cleaned up
+    severity: low
+    check:
+      type: custom
+      script: check_untagged_images
+    remediation: Add lifecycle rule to expire untagged images after 7 days
+
+enforcement:
+  strategy: automated
+  prevention:
+    - Terraform automatically applies lifecycle policies
+    - Risk-based retention enforced via locals.tf
+  detection:
+    - Daily compliance checker validates retention counts
+    - Cost monitoring alerts on excessive storage
+  remediation:
+    - Automated cleanup of old images
+    - Notifications to owners before deletion
+
+cost_impact:
+  high_risk: ~$2.50/month (50 images @ $0.10/GB)
+  medium_risk: ~$1.50/month (30 images @ $0.10/GB)
+  low_risk: ~$1.00/month (20 images @ $0.10/GB)
+
+related:
+  - ADR-0092
+  - ADR-0096
+  - POL-ECR-001

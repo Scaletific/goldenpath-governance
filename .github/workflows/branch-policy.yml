@@ -1,0 +1,41 @@
+# Owner: platform
+name: Policy - Branch Policy Guard
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  enforce-development-only:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce development -> main
+        run: |
+          base_ref="${{ github.base_ref }}"
+          head_ref="${{ github.head_ref }}"
+          if [[ "${base_ref}" == "main" ]]; then
+            build_id_branch_regex='^build[-/][0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}$'
+            hotfix_branch_regex='^hotfix/.*'
+            if [[ "${head_ref}" == "development" ]]; then
+              echo "Allowed: ${head_ref} -> ${base_ref}"
+              exit 0
+            fi
+            if [[ "${head_ref}" =~ ${build_id_branch_regex} ]]; then
+              echo "Allowed build-id branch: ${head_ref} -> ${base_ref}"
+              exit 0
+            fi
+            if [[ "${head_ref}" =~ ${hotfix_branch_regex} ]]; then
+              echo "Allowed hotfix branch: ${head_ref} -> ${base_ref}"
+              exit 0
+            fi
+            echo "Only development, build-id, or hotfix branches may merge to main." >&2
+            echo "Open a PR from development, use build-<dd-mm-yy-NN>, or hotfix/*" >&2
+            exit 1
+          else
+            echo "Allowed: ${head_ref} -> ${base_ref}"
+          fi
+      - name: Runbook link
+        if: always()
+        run: |
+          echo "Runbook: docs/adrs/ADR-0028-platform-dev-branch-gate.md" >> "${GITHUB_STEP_SUMMARY}"

@@ -1,0 +1,66 @@
+version: "1.0"
+id: POL-ECR-002
+policy_id: POL-ECR-002
+name: ECR Image Scanning Policy
+category: security
+owner: security-team
+status: active
+
+description: |
+  All ECR registries MUST have image scanning enabled.
+  Scanning detects vulnerabilities (CVEs) in container images.
+
+rules:
+  - id: POL-ECR-002-R01
+    name: Scan on Push Enabled
+    description: Image scanning must be enabled on push
+    severity: critical
+    check:
+      type: equals
+      path: image_scanning_configuration.scan_on_push
+      value: true
+    remediation: Enable scan_on_push in registry configuration
+
+  - id: POL-ECR-002-R02
+    name: High Risk Enhanced Scanning
+    description: High-risk registries must use enhanced scanning
+    severity: high
+    applies_when:
+      path: metadata.risk
+      equals: high
+    check:
+      type: equals
+      path: image_scanning_configuration.scan_type
+      value: enhanced
+    remediation: Enable enhanced scanning for high-risk registries
+
+  - id: POL-ECR-002-R03
+    name: Critical CVE SLA
+    description: Critical CVEs must be fixed within SLA
+    severity: critical
+    sla:
+      high_risk: 7 days
+      medium_risk: 14 days
+      low_risk: 30 days
+    check:
+      type: custom
+      script: check_cve_age
+    remediation: Update base image or patch vulnerable packages
+
+enforcement:
+  strategy: automated
+  prevention:
+    - Terraform always enables scanning
+    - Cannot disable via self-service
+  detection:
+    - Daily scan result checks
+    - CVE age monitoring
+  remediation:
+    - GitHub issues for violations
+    - Slack alerts to owners
+    - Automated PR for base image updates (future)
+
+related:
+  - ADR-0092
+  - ADR-0093
+  - POL-ECR-001
