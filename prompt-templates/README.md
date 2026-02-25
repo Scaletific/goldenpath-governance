@@ -82,19 +82,19 @@ Each prompt follows a standard structure (see `PROMPT-0000-template.md`):
 | ID          | Title                                  | Target Repo              | Relates To                   |
 | ----------- | -------------------------------------- | ------------------------ | ---------------------------- |
 | PROMPT-0000 | Prompt Template (Skeleton)             | any                      | -                            |
-| PROMPT-0001 | PRD-0004 Backstage Repo Structure      | goldenpath-idp-backstage | PRD-0004                     |
-| PROMPT-0002 | Pre-Commit and Pre-Merge Checks        | goldenpath-idp-infra     | GOV-0030-pr-guardrails-index          |
-| PROMPT-0003 | Recursive PR Gate Compliance           | goldenpath-idp-infra     | PROMPT-0002                  |
-| PROMPT-0004 | Hotfix Policy - Permanent Fix Required | all-goldenpath-idp-repos | GOV-0034-ai-agent-governance       |
-| PROMPT-0005 | TDD Governance Enforcement             | goldenpath-idp-infra     | ADR-0182, GOV-0016, GOV-0017 |
-| PROMPT-0006 | PR Creation Workflow                   | goldenpath-idp-infra     | PROMPT-0002, PROMPT-0003     |
-| PROMPT-0007 | Branch Sync and Conflict Resolution    | goldenpath-idp-infra     | ADR-0042, PROMPT-0006        |
-| PROMPT-0008 | Document Scaffolding (EC/PRD/ADR/CL)   | goldenpath-idp-infra     | GOV-0022                     |
-| PROMPT-0009 | Multi-Agent Coordination Launch        | goldenpath-idp-infra     | ADR-0192, PROMPT-0010        |
-| PROMPT-0010 | Session Documentation                  | goldenpath-idp-infra     | ADR-0167, PROMPT-0009        |
-| PROMPT-0011 | Script Certification Workflow          | goldenpath-idp-infra     | ADR-0146, GOV-0017           |
-| PROMPT-0012 | Test Execution Workflows               | goldenpath-idp-infra     | GOV-0016, GOV-0017           |
-| PROMPT-0013 | Post-Implementation Recursive Audit    | goldenpath-idp-infra     | GOV-0017, GOV-0016           |
+| PROMPT-0001 | PRD-0004 Backstage Repo Structure      | goldenpath-backstage | PRD-0004                     |
+| PROMPT-0002 | Pre-Commit and Pre-Merge Checks        | goldenpath-infra     | GOV-0030-pr-guardrails-index          |
+| PROMPT-0003 | Recursive PR Gate Compliance           | goldenpath-infra     | PROMPT-0002                  |
+| PROMPT-0004 | Hotfix Policy - Permanent Fix Required | all-goldenpath-repos | GOV-0034-ai-agent-governance       |
+| PROMPT-0005 | TDD Governance Enforcement             | goldenpath-infra     | ADR-0182, GOV-0016, GOV-0017 |
+| PROMPT-0006 | PR Creation Workflow                   | goldenpath-infra     | PROMPT-0002, PROMPT-0003     |
+| PROMPT-0007 | Branch Sync and Conflict Resolution    | goldenpath-infra     | ADR-0042, PROMPT-0006        |
+| PROMPT-0008 | Document Scaffolding (EC/PRD/ADR/CL)   | goldenpath-infra     | GOV-0022                     |
+| PROMPT-0009 | Multi-Agent Coordination Launch        | goldenpath-infra     | ADR-0192, PROMPT-0010        |
+| PROMPT-0010 | Session Documentation                  | goldenpath-infra     | ADR-0167, PROMPT-0009        |
+| PROMPT-0011 | Script Certification Workflow          | goldenpath-infra     | ADR-0146, GOV-0017           |
+| PROMPT-0012 | Test Execution Workflows               | goldenpath-infra     | GOV-0016, GOV-0017           |
+| PROMPT-0013 | Post-Implementation Recursive Audit    | goldenpath-infra     | GOV-0017, GOV-0016           |
 
 ## RAG Discoverability
 

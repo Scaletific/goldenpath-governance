@@ -42,8 +42,8 @@ Define the standard testing tools, frameworks, and practices for all code in the
 
 ## Scope
 
-- **Infra/Platform Repo**: `goldenpath-idp-infra` (Python, Shell, Terraform, K8s YAML)
-- **Application Repo**: `goldenpath-idp-backstage` (TypeScript, React, Node.js)
+- **Infra/Platform Repo**: `goldenpath-infra` (Python, Shell, Terraform, K8s YAML)
+- **Application Repo**: `goldenpath-backstage` (TypeScript, React, Node.js)
 
 ---
 

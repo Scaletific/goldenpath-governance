@@ -199,7 +199,7 @@ For single-agent work, standard session capture rules from
 ## Scope
 
 **Applies to:**
-- All AI agents operating in `goldenpath-idp-infra` and related repositories
+- All AI agents operating in `goldenpath-infra` and related repositories
 - Orchestrator tooling that launches parallel agents
 - Session capture and summary workflows
 

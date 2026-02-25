@@ -35,7 +35,7 @@ breaking_change: false
 # ADR-0086: Federated Metadata Validation Strategy
 
 ## Context
-Our current metadata compliance engine (`validate_metadata.py`) is locked within the `goldenpath-idp-infra` repository. As the platform scales, new application repositories (workloads) are being created without consistent metadata, leading to gaps in the IDP Knowledge Graph and inaccurate Health Reports.
+Our current metadata compliance engine (`validate_metadata.py`) is locked within the `goldenpath-infra` repository. As the platform scales, new application repositories (workloads) are being created without consistent metadata, leading to gaps in the IDP Knowledge Graph and inaccurate Health Reports.
 
 ## Decision
 We will decentralize the **execution** of metadata validation while centralizing the **definition** of the policy.

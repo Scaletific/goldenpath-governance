@@ -4,7 +4,7 @@ title: Multi-Agent Coordination Launch
 type: prompt-template
 owner: platform-team
 status: active
-target_repo: goldenpath-idp-infra
+target_repo: goldenpath-infra
 relates_to:
   - ADR-0192
   - ADR-0193

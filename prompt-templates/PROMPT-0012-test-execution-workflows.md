@@ -4,7 +4,7 @@ title: Test Execution Workflows (Smoke/Regression/Integration)
 type: prompt-template
 owner: platform-team
 status: active
-target_repo: goldenpath-idp-infra
+target_repo: goldenpath-infra
 relates_to:
   - GOV-0016-testing-stack-matrix
   - GOV-0017-tdd-and-determinism

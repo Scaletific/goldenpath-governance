@@ -235,7 +235,7 @@ Agents MUST NOT propose solutions that only address immediate symptoms.
 **Example (CORRECT):**
 
 > "Import the IAM roles to unblock deploy. Root cause: cleanup script uses
-> cluster name pattern but IAM roles use `goldenpath-idp-*` prefix.
+> cluster name pattern but IAM roles use `goldenpath-*` prefix.
 > Prevention: Update cleanup script to also match `{prefix}-idp-*` pattern
 > for IAM discovery. This ensures future teardowns clean up correctly."
 

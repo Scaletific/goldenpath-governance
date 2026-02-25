@@ -4,7 +4,7 @@ title: Branch Sync and Conflict Resolution
 type: prompt-template
 owner: platform-team
 status: active
-target_repo: goldenpath-idp-infra
+target_repo: goldenpath-infra
 relates_to:
   - PROMPT-0006
   - ADR-0042

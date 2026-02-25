@@ -409,8 +409,8 @@ repos:
       Evidence: `.github/workflows/gitleaks.yml` + build job integration
 - [x] Pre-commit template available
       Evidence: `.pre-commit-config.yaml`
-- [x] `hello-goldenpath-idp` using thin caller
-      Evidence: `hello-goldenpath-idp/.github/workflows/delivery.yml`
+- [x] `hello-goldenpath` using thin caller
+      Evidence: `hello-goldenpath/.github/workflows/delivery.yml`
 
 ### 9.2 Phase 2 Complete When
 

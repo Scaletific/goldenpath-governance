@@ -4,7 +4,7 @@ title: Session Documentation
 type: prompt-template
 owner: platform-team
 status: active
-target_repo: goldenpath-idp-infra
+target_repo: goldenpath-infra
 relates_to:
   - ADR-0167
   - ADR-0192

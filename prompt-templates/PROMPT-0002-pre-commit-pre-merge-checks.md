@@ -4,7 +4,7 @@ title: Pre-Commit and Pre-Merge Checks Reference
 type: prompt-template
 owner: platform-team
 status: active
-target_repo: goldenpath-idp-infra
+target_repo: goldenpath-infra
 relates_to:
   - GOV-0030-pr-guardrails-index
   - pre-commit-config

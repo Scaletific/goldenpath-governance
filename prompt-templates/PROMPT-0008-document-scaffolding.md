@@ -4,7 +4,7 @@ title: Document Scaffolding (EC/PRD/ADR/CL)
 type: prompt-template
 owner: platform-team
 status: active
-target_repo: goldenpath-idp-infra
+target_repo: goldenpath-infra
 relates_to:
   - GOV-0022
   - ADR-0197

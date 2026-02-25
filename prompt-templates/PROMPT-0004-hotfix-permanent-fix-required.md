@@ -4,7 +4,7 @@ title: Hotfix Policy - Permanent Fix Required
 type: prompt-template
 owner: platform-team
 status: active
-target_repo: all-goldenpath-idp-repos
+target_repo: all-goldenpath-repos
 relates_to:
   - GOV-0034-ai-agent-governance
 created: 2026-01-24

@@ -4,10 +4,10 @@ title: PRD-0004 Backstage Repo Structure Alignment Implementation
 type: prompt-template
 owner: platform-team
 status: active
-target_repo: goldenpath-idp-backstage
+target_repo: goldenpath-backstage
 relates_to:
   - PRD-0004-backstage-repo-structure-alignment
-  - goldenpath-idp-infra
+  - goldenpath-infra
 created: 2026-01-22
 ---
 
@@ -20,13 +20,13 @@ You are implementing PRD-0004: Backstage Repo Structure Alignment (Spotify-style
 
 ## Context
 
-The `goldenpath-idp-backstage` repo has a non-standard layout:
+The `goldenpath-backstage` repo has a non-standard layout:
 
 - Backstage app lives under `goldenpath/` subdirectory (should be at root)
 - Docs are in `how-to/` (should be `docs/`)
 - Build artifacts (`node_modules/`, `dist-types/`) are tracked in git
 
-This repo integrates with `goldenpath-idp-infra` which contains:
+This repo integrates with `goldenpath-infra` which contains:
 
 - Backstage Helm chart at `backstage-helm/charts/backstage/`
 - Golden Path templates at `backstage-helm/backstage-catalog/templates/`
@@ -35,7 +35,7 @@ This repo integrates with `goldenpath-idp-infra` which contains:
 
 ## Your Task
 
-Restructure `goldenpath-idp-backstage` to follow Spotify-style Backstage layout.
+Restructure `goldenpath-backstage` to follow Spotify-style Backstage layout.
 
 ## Step-by-Step Implementation
 
@@ -141,7 +141,7 @@ jobs:
 
 ### Phase 9: Cross-Repo Verification
 
-Check that `goldenpath-idp-infra` has no breaking references:
+Check that `goldenpath-infra` has no breaking references:
 
 - `backstage-helm/charts/backstage/` templates don't reference `goldenpath/` paths
 - ArgoCD app source refs are unchanged (they point to repo root, not subdirectory)
@@ -178,7 +178,7 @@ Before marking complete, verify ALL of these:
 - [ ] App loads at localhost:3000
 - [ ] CI workflow passes
 
-## Integration Verification (with goldenpath-idp-infra)
+## Integration Verification (with goldenpath-infra)
 
 - [ ] Catalog location URL resolves: `backstage-helm/backstage-catalog/all.yaml`
 - [ ] Golden Path templates register:
@@ -193,7 +193,7 @@ Before marking complete, verify ALL of these:
 
 - Change any Backstage functionality or plugins
 - Modify app-config.yaml content (only paths if needed)
-- Touch goldenpath-idp-infra unless paths are broken
+- Touch goldenpath-infra unless paths are broken
 - Rewrite git history with filter-branch or BFG
 - Skip the CI guard step
 

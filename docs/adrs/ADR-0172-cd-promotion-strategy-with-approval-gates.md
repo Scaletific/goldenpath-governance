@@ -239,9 +239,9 @@ Infrastructure deployments (Terraform) follow separate approval workflows.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: hello-goldenpath-idp-dev
+  name: hello-goldenpath-dev
   annotations:
-    argocd-image-updater.argoproj.io/image-list: app=[AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/hello-goldenpath-idp
+    argocd-image-updater.argoproj.io/image-list: app=[AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/hello-goldenpath
     argocd-image-updater.argoproj.io/app.update-strategy: latest
 spec:
   syncPolicy:
@@ -256,9 +256,9 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: hello-goldenpath-idp-prod
+  name: hello-goldenpath-prod
   annotations:
-    argocd-image-updater.argoproj.io/image-list: app=[AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/hello-goldenpath-idp
+    argocd-image-updater.argoproj.io/image-list: app=[AWS_ACCOUNT_ID].dkr.ecr.[AWS_REGION].amazonaws.com/hello-goldenpath
     argocd-image-updater.argoproj.io/app.update-strategy: semver
 spec:
   syncPolicy:
@@ -272,10 +272,10 @@ spec:
 
 ```bash
 # View deployment history
-argocd app history hello-goldenpath-idp-prod
+argocd app history hello-goldenpath-prod
 
 # Rollback to previous revision
-argocd app rollback hello-goldenpath-idp-prod 42
+argocd app rollback hello-goldenpath-prod 42
 
 # Or revert in Git (recommended for audit)
 git revert HEAD

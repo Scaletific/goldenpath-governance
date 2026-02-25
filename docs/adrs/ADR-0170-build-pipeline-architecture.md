@@ -76,8 +76,8 @@ GoldenPath IDP needs a standardized build pipeline that:
 
 The platform currently has:
 
-- `goldenpath-idp-infra/` as the central infrastructure repo
-- `hello-goldenpath-idp/` as a sample application repo
+- `goldenpath-infra/` as the central infrastructure repo
+- `hello-goldenpath/` as a sample application repo
 - argocd-image-updater configured for local environment with digest strategy
 
 ## Decision
@@ -86,7 +86,7 @@ The platform currently has:
 
 Adopt a **canonical reusable workflow pattern**:
 
-- **Platform repo** (`goldenpath-idp-infra/`) owns the canonical pipeline
+- **Platform repo** (`goldenpath-infra/`) owns the canonical pipeline
 - **App repos** call it via thin ~15-line caller workflows
 - **GitOps** updates trigger ArgoCD sync
 
@@ -186,7 +186,7 @@ concurrency:
 - Create `_build-and-release.yml` canonical workflow
 - Add Trivy blocking gates with SARIF upload
 - Add concurrency groups
-- Refactor `hello-goldenpath-idp` to thin caller
+- Refactor `hello-goldenpath` to thin caller
 
 ### Phase 2: Authentication & Promotion
 

@@ -58,7 +58,7 @@ This document is governed by `docs/adrs/ADR-0037-platform-resource-tagging-polic
 | Lifecycle | Yes | CI / terraform vars | `ephemeral` | `ephemeral` or `persistent`. |
 | ManagedBy | Yes | Terraform defaults | `terraform` | Ownership signal for automation. |
 | Owner | Yes | CI / terraform vars | `platform-team` | Human accountable owner. |
-| Project | Yes | Terraform defaults | `goldenpath-idp` | Cost allocation and grouping. |
+| Project | Yes | Terraform defaults | `goldenpath` | Cost allocation and grouping. |
 
 ## Recommended tags (V1)
 

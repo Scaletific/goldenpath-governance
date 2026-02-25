@@ -73,8 +73,8 @@ test/coverage outputs used by `PLATFORM_HEALTH.md` and the Test Health dashboard
 ## Scope
 
 **Applies to**
-- Test metrics payloads produced by `goldenpath-idp-infra` and
-  `goldenpath-idp-backstage`.
+- Test metrics payloads produced by `goldenpath-infra` and
+  `goldenpath-backstage`.
 - Governance-registry artifacts used to render `PLATFORM_HEALTH.md`.
 - Scripts: `scripts/collect_test_metrics.py`, `scripts/generate_test_proofs.py`, `scripts/record-test-metrics.sh`.
 

@@ -4,7 +4,7 @@ title: PR Creation Workflow
 type: prompt-template
 owner: platform-team
 status: active
-target_repo: goldenpath-idp-infra
+target_repo: goldenpath-infra
 relates_to:
   - PROMPT-0002
   - PROMPT-0003
