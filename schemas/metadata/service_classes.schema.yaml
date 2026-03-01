@@ -1,0 +1,80 @@
+# This schema validates a service class request
+# record (works for Backstage templates, catalog requests,
+# or a GitHub workflow form that writes YAML into docs/20-contracts/resource-catalogs/ or similar).
+# schemas/metadata/service_classes.schema.yaml
+version: 1
+type: object
+additionalProperties: false
+
+required:
+  - id
+  - service_class
+  - owner
+  - lifecycle
+  - approvals
+  - spec
+
+properties:
+  id:
+    type: string
+    description: "Unique request or catalog id (e.g., SCREQ-0001, CATALOG-ECR-001)."
+    pattern: "^[A-Z0-9_-]{6,64}$"
+
+  service_class:
+    type: string
+    description: "What is being provisioned (platform product)."
+    enum_from: service_classes
+
+  owner:
+    type: string
+    description: "Owning team for the provisioned capability."
+    enum_from: owners
+
+  lifecycle:
+    type: string
+    description: "Lifecycle classification for this request/catalog entry."
+    enum_from: lifecycle
+
+  environment:
+    type: string
+    description: "Optional target environment classification."
+    enum_from: environments
+
+  approvals:
+    type: object
+    additionalProperties: false
+    required: [tier]
+    properties:
+      tier:
+        type: string
+        description: "Approval tier for provisioning."
+        enum_from: approval_tiers
+      required_reviewers:
+        type: array
+        description: "Optional explicit reviewer groups (in addition to tier defaults)."
+        items:
+          type: string
+          enum_from: reviewer_groups
+
+  metadata:
+    type: object
+    description: "Optional metadata used by routing, graph export, and reporting."
+    additionalProperties: false
+    properties:
+      domain:
+        type: string
+        enum_from: domains
+      components:
+        type: array
+        items:
+          type: string
+          enum_from: components
+      tags:
+        type: array
+        items:
+          type: string
+
+  spec:
+    type: object
+    description: "Service-class specific inputs. Validated by per-service spec schemas or conventions."
+    additionalProperties: true

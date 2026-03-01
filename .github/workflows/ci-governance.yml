@@ -1,0 +1,38 @@
+name: Governance Enforcement
+
+on:
+  push:
+    branches: [main, development]
+    paths:
+      - 'scripts/**'
+      - 'schemas/automation/**'
+  pull_request:
+    branches: [main, development]
+    paths:
+      - 'scripts/**'
+      - 'schemas/automation/**'
+
+jobs:
+  validate-scripts:
+    name: Validate Script Contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml
+
+      - name: Run Validator (Acceptance V1)
+        run: |
+          python3 scripts/validate_scripts_tested.py
+
+      - name: Verify Matrix Freshness
+        run: |
+          python3 scripts/generate_script_matrix.py
+          git diff --exit-code docs/governance/GOV-0053-script-certification-matrix.md

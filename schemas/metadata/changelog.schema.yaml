@@ -1,0 +1,29 @@
+# type: object
+required:
+  - id
+  - title
+  - status
+  - category
+  - owner
+
+properties:
+  id:
+    type: string
+    pattern: "^CL-[0-9]{4}$"
+
+  title:
+    type: string
+
+  type:
+    default: changelog
+
+  status:
+    enum_from: status
+    default: active
+
+  category:
+    enum_from: adr_categories
+
+  owner:
+    enum_from: owners
+    default: platform-team

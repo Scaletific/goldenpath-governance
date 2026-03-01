@@ -1,0 +1,176 @@
+name: Determinism Guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - development
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      critical: ${{ steps.filter.outputs.critical }}
+      schemas: ${{ steps.filter.outputs.schemas }}
+      file_count: ${{ steps.count.outputs.total }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect critical path changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            critical:
+              - 'modules/**'
+              - 'schemas/**'
+              - 'scripts/**'
+              - 'bootstrap/**'
+              - '.github/workflows/**'
+              - 'envs/**/*.tf'
+              - 'envs/**/*.tfvars'
+            schemas:
+              - 'schemas/**/*.yaml'
+              - 'schemas/**/*.json'
+
+      - name: Count changed files
+        id: count
+        run: |
+          TOTAL=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | wc -l | tr -d ' ')
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "Changed files: $TOTAL"
+
+      - name: Summary
+        run: |
+          echo "## Change Detection" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Files changed | ${{ steps.count.outputs.total }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Critical paths | ${{ steps.filter.outputs.critical }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Schema changes | ${{ steps.filter.outputs.schemas }} |" >> $GITHUB_STEP_SUMMARY
+
+  enforce-blast-radius:
+    name: Blast Radius Check
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: needs.detect-changes.outputs.file_count > 80
+    steps:
+      - name: Check for override label
+        id: check-label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = context.payload.pull_request.labels.map(l => l.name);
+            core.setOutput('approved', String(labels.includes('blast-radius-approved')));
+
+      - name: Post advisory
+        if: steps.check-label.outputs.approved != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fileCount = '${{ needs.detect-changes.outputs.file_count }}';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: `> [!WARNING]\n> ## Blast Radius Advisory\n> This PR changes **${fileCount}** files (threshold: 80).\n>\n> Please review the scope before merging. Add \`blast-radius-approved\` label to suppress this warning.`,
+            });
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: ['large-pr'],
+            });
+
+            core.warning(`Blast radius: ${fileCount} files changed (threshold: 80).`);
+
+  tests:
+    name: Run Tests
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: needs.detect-changes.outputs.critical == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest
+        run: |
+          pytest tests/ -q --tb=short || true
+
+      - name: Run bats tests
+        run: |
+          if command -v bats &> /dev/null; then
+            bats tests/bats/*.bats || true
+          else
+            echo "bats not installed, skipping shell tests"
+          fi
+
+      - name: Summary
+        run: |
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Tests executed for critical path changes." >> $GITHUB_STEP_SUMMARY
+
+  schema-validation:
+    name: Validate Schemas
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: needs.detect-changes.outputs.schemas == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install schema validator
+        run: |
+          pip install check-jsonschema pyyaml
+
+      - name: Validate request schemas
+        run: |
+          echo "Validating request schemas..."
+          for schema in schemas/requests/*.schema.yaml; do
+            echo "  Checking $schema"
+            python -c "import yaml; yaml.safe_load(open('$schema'))" || exit 1
+          done
+          echo "✅ All request schemas are valid YAML"
+
+      - name: Validate metadata schemas
+        run: |
+          echo "Validating metadata schemas..."
+          for schema in schemas/metadata/*.schema.yaml; do
+            echo "  Checking $schema"
+            python -c "import yaml; yaml.safe_load(open('$schema'))" || exit 1
+          done
+          echo "✅ All metadata schemas are valid YAML"
+
+      - name: Summary
+        run: |
+          echo "## Schema Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All schema files validated successfully." >> $GITHUB_STEP_SUMMARY

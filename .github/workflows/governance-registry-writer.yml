@@ -1,0 +1,215 @@
+name: Governance Registry Writer
+
+on:
+  push:
+    branches:
+      - development
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: govreg-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  write-registry:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Capture source metadata
+        id: meta
+        run: |
+          echo "source_branch=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          echo "source_sha=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+          echo "generated_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+          echo "run_id=${GITHUB_RUN_ID}" >> $GITHUB_OUTPUT
+          echo "workflow=${GITHUB_WORKFLOW}" >> $GITHUB_OUTPUT
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate governance artifacts (workspace)
+        run: |
+          mkdir -p _govreg_out
+
+          # Generate platform health report
+          export PYTHONPATH=$PYTHONPATH:$(pwd)/scripts
+          python3 scripts/platform_health.py .
+          cp PLATFORM_HEALTH.md _govreg_out/PLATFORM_HEALTH.md
+
+          # Generate all indices
+          python3 scripts/generate_script_index.py
+          python3 scripts/generate_workflow_index.py
+          python3 scripts/generate_adr_index.py
+          python3 scripts/generate_catalog_docs.py
+          python3 scripts/generate_governance_vocab.py
+
+          # Copy generated indices to output
+          cp scripts/index.md _govreg_out/scripts_index.md
+          cp ci-workflows/CI_WORKFLOWS.md _govreg_out/workflows_index.md
+          cp docs/adrs/01_adr_index.md _govreg_out/adr_index.md
+          cp docs/REGISTRY_CATALOG.md _govreg_out/registry_catalog.md
+          cp docs/governance/GOV-0026-governance-vocabulary.md _govreg_out/governance_vocabulary.md
+
+          # NOTE: Do NOT copy docs/build-timings.csv from source branch.
+          # The authoritative build_timings.csv lives only on governance-registry
+          # and is appended to by teardown/bootstrap/apply workflows.
+          # Copying from source would overwrite newer data with stale data.
+
+          # Copy AWS inventory reports (latest snapshots)
+          if [ -d reports/aws-inventory ]; then
+            mkdir -p _govreg_out/aws-inventory
+            # Copy the 2 most recent JSON and MD files
+            find reports/aws-inventory -type f \( -name "aws-inventory-*.json" -o -name "aws-inventory-*.md" \) ! -name "*-ecr-*" | \
+              sort -r | head -n 4 | \
+              xargs -I {} cp {} _govreg_out/aws-inventory/ 2>/dev/null || true
+          fi
+
+      - name: Checkout Backstage governance-registry (optional)
+        if: ${{ secrets.BACKSTAGE_REPO_TOKEN != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: [GITHUB_ORG]/[BACKSTAGE_REPO]
+          ref: governance-registry
+          path: _backstage_govreg
+          token: ${{ secrets.BACKSTAGE_REPO_TOKEN }}
+
+      - name: Import Backstage test metrics (optional)
+        if: ${{ secrets.BACKSTAGE_REPO_TOKEN != '' }}
+        run: |
+          ENV_NAME="${{ steps.meta.outputs.source_branch }}"
+          if [ "$ENV_NAME" = "dev" ]; then
+            ENV_NAME="development"
+          fi
+
+          SRC="_backstage_govreg/environments/${ENV_NAME}/latest/test_metrics.json"
+          DEST="_govreg_out/backstage/environments/${ENV_NAME}/latest"
+
+          if [ -f "$SRC" ]; then
+            mkdir -p "$DEST"
+            cp "$SRC" "$DEST/test_metrics.json"
+            echo "Imported Backstage test metrics from $SRC"
+          else
+            echo "No Backstage test metrics found at $SRC"
+          fi
+
+      - name: Inject metadata headers
+        env:
+          SOURCE_BRANCH: ${{ steps.meta.outputs.source_branch }}
+          SOURCE_SHA: ${{ steps.meta.outputs.source_sha }}
+          GENERATED_AT: ${{ steps.meta.outputs.generated_at }}
+          RUN_ID: ${{ steps.meta.outputs.run_id }}
+          WORKFLOW: ${{ steps.meta.outputs.workflow }}
+        run: |
+          # Inject chain-of-custody header into PLATFORM_HEALTH.md
+          cat > /tmp/header.yml <<EOF
+          ---
+          type: governance-report
+          env: ${SOURCE_BRANCH}
+          generated_at: ${GENERATED_AT}
+          source:
+            branch: ${SOURCE_BRANCH}
+            sha: ${SOURCE_SHA}
+          pipeline:
+            workflow: ${WORKFLOW}
+            run_id: ${RUN_ID}
+          integrity:
+            derived_only: true
+          ---
+          EOF
+
+          # Prepend header to artifacts
+          for file in _govreg_out/*.md; do
+            cat /tmp/header.yml "$file" > /tmp/temp.md
+            mv /tmp/temp.md "$file"
+          done
+
+      - name: Checkout governance-registry branch
+        uses: actions/checkout@v4
+        with:
+          ref: governance-registry
+          path: _govreg_repo
+          fetch-depth: 0
+
+      - name: Prepare registry paths
+        run: |
+          ENV_NAME="${{ steps.meta.outputs.source_branch }}"
+          SHA="${{ steps.meta.outputs.source_sha }}"
+          TS="$(date -u +%Y-%m-%d-%H%MZ)"
+          echo "ENV_NAME=$ENV_NAME" >> $GITHUB_ENV
+          echo "HIST_DIR=_govreg_repo/environments/$ENV_NAME/history/${TS}-${SHA:0:7}" >> $GITHUB_ENV
+          echo "LATEST_DIR=_govreg_repo/environments/$ENV_NAME/latest" >> $GITHUB_ENV
+
+      - name: Preserve existing build_timings.csv
+        run: |
+          # Preserve build_timings.csv from governance-registry - this file is
+          # appended to by teardown/bootstrap/apply workflows and must NOT be
+          # overwritten by the sync. The source branches don't have this file.
+          if [ -f "$LATEST_DIR/build_timings.csv" ]; then
+            echo "Preserving existing build_timings.csv with $(wc -l < "$LATEST_DIR/build_timings.csv") entries"
+            cp "$LATEST_DIR/build_timings.csv" /tmp/preserved_build_timings.csv
+          fi
+
+      - name: Write latest + history (atomic)
+        run: |
+          mkdir -p "$LATEST_DIR" "$HIST_DIR"
+
+          # Copy generated artifacts to latest
+          cp -R _govreg_out/* "$LATEST_DIR/"
+
+          # Copy generated artifacts to history snapshot
+          cp -R _govreg_out/* "$HIST_DIR/"
+
+          # Restore preserved build_timings.csv (this was accumulated from
+          # teardown/bootstrap/apply workflows and shouldn't be overwritten)
+          if [ -f /tmp/preserved_build_timings.csv ]; then
+            echo "Restoring preserved build_timings.csv"
+            cp /tmp/preserved_build_timings.csv "$LATEST_DIR/build_timings.csv"
+            cp /tmp/preserved_build_timings.csv "$HIST_DIR/build_timings.csv"
+          fi
+
+      - name: Sync Backstage catalog to registry
+        run: |
+          # Copy Backstage catalog for stable cross-environment access
+          mkdir -p _govreg_repo/backstage-catalog
+          cp -R catalog/* _govreg_repo/backstage-catalog/
+
+          # Update catalog URLs to point to registry branch (self-referential)
+          # This ensures templates reference the stable registry branch
+          if [ -f _govreg_repo/backstage-catalog/all.yaml ]; then
+            echo "Backstage catalog synced to governance-registry"
+          fi
+
+      - name: Update unified dashboard
+        run: |
+          # TODO: Implement unified dashboard generator
+          # python3 scripts/build_unified_dashboard.py --root _govreg_repo --out _govreg_repo/UNIFIED_DASHBOARD.md
+          echo "# Unified Governance Dashboard" > _govreg_repo/UNIFIED_DASHBOARD.md
+          echo "Generated: ${{ steps.meta.outputs.generated_at }}" >> _govreg_repo/UNIFIED_DASHBOARD.md
+
+      - name: Commit and push registry update
+        run: |
+          cd _govreg_repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add environments/ UNIFIED_DASHBOARD.md backstage-catalog/ || true
+
+          git commit -m "govreg: ${ENV_NAME} @ ${{ steps.meta.outputs.source_sha }}" || exit 0
+          git push origin governance-registry
+
+      # NOTE: PR comment step removed - this workflow only triggers on push events.
+      # If PR commenting is needed, add 'pull_request' to the 'on:' triggers above.

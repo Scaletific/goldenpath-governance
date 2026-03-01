@@ -1,0 +1,19 @@
+# Gitleaks configuration
+# https://github.com/gitleaks/gitleaks
+
+title = "GoldenPath IDP Gitleaks Config"
+
+[allowlist]
+description = "Global allowlist for false positives"
+
+# Allow session documentation files - these may contain example outputs
+# that look like secrets but are not actual credentials
+paths = [
+  '''session_capture/.*\.md$''',
+  '''session_summary/.*\.md$''',
+]
+
+# Commits to allowlist (false positives in git history)
+commits = [
+  "774a852d8c308d67ca314dd83d1b11675d6e5a03",
+]

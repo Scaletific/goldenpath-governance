@@ -1,0 +1,173 @@
+# Bats Shell Script Tests
+# Runs bats-core tests for shell scripts
+# Part of TDD infrastructure (GOV-0016, GOV-0017)
+
+name: Shell Script Tests (bats)
+
+on:
+  push:
+    branches: [main, development]
+    paths:
+      - '**.sh'
+      - 'tests/bats/**'
+      - '.github/workflows/bats-tests.yml'
+  pull_request:
+    branches: [main, development]
+    paths:
+      - '**.sh'
+      - 'tests/bats/**'
+      - '.github/workflows/bats-tests.yml'
+
+jobs:
+  bats:
+    name: Bats Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install bats-core
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats
+
+      - name: Run bats tests
+        id: bats
+        run: |
+          echo "Running bats tests..."
+          bats tests/bats/*.bats --formatter tap | tee bats-results.tap
+        continue-on-error: true
+
+      - name: Convert TAP to JUnit
+        if: always()
+        run: |
+          # Install tap-junit converter
+          npm install -g tap-junit
+
+          # Convert TAP to JUnit XML
+          cat bats-results.tap | tap-junit > bats-junit.xml || true
+
+      - name: Collect Test Metrics
+        if: always()
+        run: |
+          mkdir -p test-results
+          if [ -f bats-junit.xml ]; then
+            python3 scripts/collect_test_metrics.py \
+              --repo "${{ github.repository }}" \
+              --branch "${{ github.ref_name }}" \
+              --commit "${{ github.sha }}" \
+              --ci-run-id "${{ github.run_id }}" \
+              --bats-junit bats-junit.xml \
+              --output test-results/test-metrics.json || \
+              echo "Warning: failed to collect test metrics"
+          else
+            echo "Warning: bats-junit.xml not found; skipping test metrics"
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bats-test-results
+          path: |
+            bats-results.tap
+            bats-junit.xml
+            test-results/test-metrics.json
+          retention-days: 30
+
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "### Bats Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Count results from TAP output
+          PASSED=$(grep -c "^ok" bats-results.tap || echo "0")
+          FAILED=$(grep -c "^not ok" bats-results.tap || echo "0")
+          TOTAL=$((PASSED + FAILED))
+
+          echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Passed | $PASSED |" >> $GITHUB_STEP_SUMMARY
+          echo "| Failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
+          echo "| Total | $TOTAL |" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "$FAILED" -gt 0 ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Status**: Some tests failed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Status**: All tests passed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail if tests failed
+        if: steps.bats.outcome == 'failure'
+        run: exit 1
+
+  record-test-metrics:
+    name: Record Test Metrics
+    runs-on: ubuntu-latest
+    needs: [bats]
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download Test Metrics
+        uses: actions/download-artifact@v4
+        with:
+          name: bats-test-results
+          path: test-results
+
+      - name: Record Metrics to Governance Registry
+        env:
+          GOVERNANCE_REGISTRY_BRANCH: governance-registry
+        run: |
+          if [ ! -f test-results/test-metrics.json ]; then
+            echo "No test-metrics.json found; skipping registry write"
+            exit 0
+          fi
+
+          ENV_NAME="dev"
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            ENV_NAME="prod"
+          fi
+
+          bash scripts/record-test-metrics.sh "$ENV_NAME" test-results/test-metrics.json
+
+  shellcheck:
+    name: ShellCheck Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './scripts'
+          severity: warning
+        continue-on-error: true
+
+      - name: ShellCheck bootstrap scripts
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './bootstrap'
+          severity: warning
+        continue-on-error: true

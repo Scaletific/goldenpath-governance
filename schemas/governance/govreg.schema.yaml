@@ -1,0 +1,81 @@
+---
+id: GOVREG_SCHEMA_V1
+title: Governance Registry Ledger Schema
+type: schema
+owner: platform-team
+status: active
+version: 1
+relates_to: [ADR-0145, RB-0028]
+---
+
+version: 1
+
+properties:
+  allowed_top_level:
+    type: array
+    items:
+      type: string
+    description: "Allowed top-level paths in the governance-registry branch"
+    default:
+      - environments
+      - backstage-catalog
+      - UNIFIED_DASHBOARD.md
+      - README.md
+      - .git
+      - .github
+
+  required_dirs:
+    type: array
+    items:
+      type: string
+    description: "Required directories at the root of governance-registry"
+    default:
+      - environments
+
+  required_env_subdirs:
+    type: array
+    items:
+      type: string
+    description: "Required subdirectories under each environment folder"
+    default:
+      - latest
+      - history
+
+  markdown:
+    type: object
+    properties:
+      frontmatter:
+        type: object
+        properties:
+          required_paths:
+            type: array
+            items:
+              type: string
+            description: "Glob patterns where frontmatter validation is enforced"
+            default:
+              - "environments/**/latest/**/*.md"
+              - "environments/**/history/**/*.md"
+              - "UNIFIED_DASHBOARD.md"
+
+          required_keys:
+            type: array
+            items:
+              type: string
+            description: "Required YAML keys in frontmatter (nested keys use colon notation)"
+            default:
+              - "env"
+              - "generated_at"
+              - "source:"
+              - "branch:"
+              - "sha:"
+              - "pipeline:"
+              - "workflow:"
+              - "run_id:"
+              - "integrity:"
+              - "derived_only:"
+
+required:
+  - allowed_top_level
+  - required_dirs
+  - required_env_subdirs
+  - markdown

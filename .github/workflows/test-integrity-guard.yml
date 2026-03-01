@@ -1,0 +1,182 @@
+# Test Integrity Guard
+# ====================
+# Purpose: Prevent agents (or anyone) from weakening tests to make code pass.
+# Reference: ADR-0164 Agent Trust and Identity Architecture
+#
+# This workflow detects:
+# - Test count regression (fewer tests than before)
+# - Assertion weakening patterns
+# - Coverage threshold reductions
+# - Golden file modifications (flags for review)
+
+name: Test Integrity Guard
+
+on:
+  pull_request:
+    paths:
+      - 'tests/**'
+      - '.github/workflows/**'
+      - 'pyproject.toml'
+      - 'pytest.ini'
+      - '.coveragerc'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout base branch
+        run: |
+          git fetch origin ${{ github.base_ref }}
+
+      - name: Check for golden file modifications
+        id: golden-check
+        run: |
+          GOLDEN_CHANGES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^tests/golden/fixtures/expected/' || true)
+
+          if [ -n "$GOLDEN_CHANGES" ]; then
+            echo "golden_modified=true" >> $GITHUB_OUTPUT
+            echo "::warning::Golden files modified - requires human approval per ADR-0164"
+            echo ""
+            echo "Modified golden files:"
+            echo "$GOLDEN_CHANGES"
+          else
+            echo "golden_modified=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for coverage threshold reduction
+        run: |
+          # Check if coverage config files were modified
+          COVERAGE_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '(\.coveragerc|pyproject\.toml|pytest\.ini|setup\.cfg)' || true)
+
+          if [ -n "$COVERAGE_FILES" ]; then
+            # Look for patterns that reduce coverage requirements
+            WEAKENING=$(git diff origin/${{ github.base_ref }}...HEAD -- $COVERAGE_FILES | grep -E '^\+.*fail.under.*=.*[0-9]' || true)
+
+            if [ -n "$WEAKENING" ]; then
+              # Extract old and new values to compare
+              echo "::warning::Coverage threshold may have been modified - review required"
+              echo "Changes detected in: $COVERAGE_FILES"
+            fi
+          fi
+
+          echo "Coverage threshold check complete"
+
+      - name: Detect assertion weakening patterns
+        run: |
+          # Patterns that suggest weakening assertions
+          WEAKENING_PATTERNS=(
+            # Removing specific assertions for generic ones
+            's/assert .* == .*/assert .* is not None/'
+            's/assert .* == .*/assert True/'
+            # Commenting out assertions
+            '^\+.*#.*assert'
+            # Removing pytest.raises
+            '^-.*pytest\.raises'
+            # Adding pytest.skip without good reason
+            '^\+.*pytest\.skip'
+            '^\+.*@pytest\.mark\.skip'
+          )
+
+          DIFF=$(git diff origin/${{ github.base_ref }}...HEAD -- 'tests/**/*.py')
+
+          WARNINGS=""
+
+          # Check for removed assertions
+          REMOVED_ASSERTS=$(echo "$DIFF" | grep -c '^-.*assert ' || true)
+          ADDED_ASSERTS=$(echo "$DIFF" | grep -c '^\+.*assert ' || true)
+
+          if [ "$REMOVED_ASSERTS" -gt "$ADDED_ASSERTS" ]; then
+            WARNINGS="${WARNINGS}Net assertion reduction detected (removed: $REMOVED_ASSERTS, added: $ADDED_ASSERTS)\n"
+          fi
+
+          # Check for commented assertions
+          COMMENTED=$(echo "$DIFF" | grep -c '^\+.*#.*assert' || true)
+          if [ "$COMMENTED" -gt 0 ]; then
+            WARNINGS="${WARNINGS}Commented assertions detected ($COMMENTED instances)\n"
+          fi
+
+          # Check for new skips
+          NEW_SKIPS=$(echo "$DIFF" | grep -c '^\+.*@pytest\.mark\.skip\|^\+.*pytest\.skip' || true)
+          if [ "$NEW_SKIPS" -gt 0 ]; then
+            WARNINGS="${WARNINGS}New test skips added ($NEW_SKIPS instances)\n"
+          fi
+
+          if [ -n "$WARNINGS" ]; then
+            echo "::warning::Potential test weakening detected:"
+            echo -e "$WARNINGS"
+            echo ""
+            echo "Per ADR-0164, test weakening requires human review and justification."
+          fi
+
+          echo "Assertion analysis complete"
+
+      - name: Count test functions
+        id: test-count
+        run: |
+          # Count test functions in current PR
+          PR_TESTS=$(find tests -name '*.py' -exec grep -c '^def test_\|^    def test_\|^async def test_' {} + 2>/dev/null | awk -F: '{sum += $2} END {print sum}' || echo "0")
+
+          # Count test functions in base branch
+          git checkout origin/${{ github.base_ref }} -- tests/ 2>/dev/null || true
+          BASE_TESTS=$(find tests -name '*.py' -exec grep -c '^def test_\|^    def test_\|^async def test_' {} + 2>/dev/null | awk -F: '{sum += $2} END {print sum}' || echo "0")
+
+          # Restore PR version
+          git checkout HEAD -- tests/
+
+          echo "base_count=$BASE_TESTS" >> $GITHUB_OUTPUT
+          echo "pr_count=$PR_TESTS" >> $GITHUB_OUTPUT
+
+          echo "Base branch test count: $BASE_TESTS"
+          echo "PR test count: $PR_TESTS"
+
+          if [ "$PR_TESTS" -lt "$BASE_TESTS" ]; then
+            DIFF=$((BASE_TESTS - PR_TESTS))
+            echo "::error::Test count regression: $DIFF fewer tests than base branch"
+            echo "::error::Per ADR-0164, removing tests requires human approval with justification"
+            exit 1
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Test Integrity Guard Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Golden files modified | ${{ steps.golden-check.outputs.golden_modified }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Base test count | ${{ steps.test-count.outputs.base_count }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| PR test count | ${{ steps.test-count.outputs.pr_count }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Reference: [ADR-0164 Agent Trust and Identity](../docs/adrs/ADR-0164-agent-trust-and-identity.md)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment on PR if golden files modified
+        if: steps.golden-check.outputs.golden_modified == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Golden File Modification Detected
+
+            This PR modifies files in \`tests/golden/fixtures/expected/\`.
+
+            Per [ADR-0164](../docs/adrs/ADR-0164-agent-trust-and-identity.md), golden files define expected behavior and require **human approval** before merging.
+
+            ### Required Actions:
+            1. Review the golden file changes carefully
+            2. Verify the new expected output is correct
+            3. A CODEOWNER must approve this PR
+
+            > "An agent earns trust not by what it can do, but by what it cannot." - ADR-0164`
+            })

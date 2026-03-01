@@ -1,0 +1,16 @@
+---
+id: APPS_SCHEMAS_METADATA
+title: metadata
+type: schema-definition
+owner: platform-team
+status: active
+domain: platform-core
+category: platform
+risk_profile:
+  production_impact: high
+  security_risk: medium
+  coupling_risk: high
+reliability:
+  observability_tier: bronze
+lifecycle:
+  supported_until: '2028-01-01'

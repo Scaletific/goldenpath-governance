@@ -1,0 +1,8 @@
+# Platform Team Membership (Governed by platform-team)
+platform_team:
+  - [GITHUB_ORG]
+  - [PLATFORM_ADMIN]
+
+service_accounts:
+  - github-actions[bot]
+  - dependabot[bot]

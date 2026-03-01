@@ -1,0 +1,49 @@
+infra:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "envs/**"
+          - "modules/**"
+          - "bootstrap/**"
+          - "gitops/**"
+          - "idp-tooling/**"
+          - "scripts/**"
+          - ".github/workflows/**"
+          - "Makefile"
+
+governance:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/governance/**"
+          - "docs/20-contracts/**"
+          - "docs/90-doc-system/**"
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "!docs/governance/**"
+          - "!docs/20-contracts/**"
+          - "!docs/90-doc-system/**"
+
+changelog-required:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "envs/**"
+          - "modules/**"
+          - "bootstrap/**"
+          - "gitops/**"
+          - ".github/workflows/**"
+          - "docs/governance/**"
+          - "docs/20-contracts/**"
+          - "docs/90-doc-system/**"
+
+adr-required:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "modules/**"
+          - "bootstrap/**"
+          - "gitops/**"
+          - ".github/workflows/**"
+          - "docs/governance/**"
+          - "docs/20-contracts/**"
+# no-op 2026-01-02T11:16:48Z

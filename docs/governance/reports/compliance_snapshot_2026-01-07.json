@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-01-07T09:34:51.950384",
+  "total_files": 693,
+  "compliant_files": 0,
+  "inherited_coverage": 4189,
+  "explicit_coverage": 6778,
+  "exempt_files": 0,
+  "enum_drift_attempts": 0,
+  "failures": []
+}

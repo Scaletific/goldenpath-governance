@@ -1,0 +1,57 @@
+# Owner: platform-team
+# Relates-To: GOV-0034-ai-agent-governance, PROMPT-0003
+name: Agent Merge Guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [development, main]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  check-agent-author:
+    name: agent-merge-guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detect agent-authored PR
+        id: detect
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_AUTHOR_TYPE: ${{ github.event.pull_request.user.type }}
+        run: |
+          echo "PR Author: $PR_AUTHOR"
+          echo "Author Type: $PR_AUTHOR_TYPE"
+
+          # Known agent account patterns (case insensitive)
+          AGENT_PATTERNS="devin|copilot|claude|codex|bot|automation|dependabot|renovate"
+
+          # Check if author is a Bot type or matches agent patterns
+          if [[ "$PR_AUTHOR_TYPE" == "Bot" ]]; then
+            echo "AGENT_PR=true" >> $GITHUB_OUTPUT
+            echo "::notice::PR authored by bot account - requires human approval"
+          elif echo "$PR_AUTHOR" | grep -iqE "$AGENT_PATTERNS"; then
+            echo "AGENT_PR=true" >> $GITHUB_OUTPUT
+            echo "::notice::PR author matches agent pattern - requires human approval"
+          else
+            echo "AGENT_PR=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Warn about agent PR requirements
+        if: steps.detect.outputs.AGENT_PR == 'true'
+        run: |
+          echo "## 🤖 Agent-Authored PR Detected" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This PR was created by an automated agent." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Requirements:**" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ All CI checks must pass" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ At least 1 human approval required" >> $GITHUB_STEP_SUMMARY
+          echo "-  Agent cannot self-approve or self-merge" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please request review from a human team member." >> $GITHUB_STEP_SUMMARY
+
+      - name: Pass for human-authored PRs
+        if: steps.detect.outputs.AGENT_PR == 'false'
+        run: |
+          echo "✅ PR authored by human - standard review process applies"

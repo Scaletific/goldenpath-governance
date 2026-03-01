@@ -1,0 +1,56 @@
+# Owner: platform
+# Relates-To: 85-how-it-works/governance/DOC_AUTO_HEALING.md
+name: Quality - Documentation Auto-Healing
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/**'
+      - 'docs/adrs/**'
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  auto-heal-docs:
+    name: Auto-Heal Indices
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml==6.0.1
+
+      - name: Auto-Heal Indices
+        run: |
+          python3 scripts/generate_script_index.py
+          python3 scripts/generate_workflow_index.py
+          python3 scripts/generate_adr_index.py
+
+      - name: Commit and Push Changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git add .
+            git commit -m "chore(governance): auto-heal indexes [skip ci]"
+            git push
+            echo "✅ Indices were out of sync. Automated corrections have been pushed to your branch." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ Indices are up to date. No action required." >> $GITHUB_STEP_SUMMARY
+          fi

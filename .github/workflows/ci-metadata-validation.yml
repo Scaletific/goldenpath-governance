@@ -1,0 +1,153 @@
+name: Quality - Metadata Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "**/*.md"
+      - "**/metadata.yaml"
+      - "**/metadata.yml"
+      - "scripts/validate_metadata.py"
+      - "scripts/standardize_metadata.py"
+      - ".github/workflows/ci-metadata-validation.yml"
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  validate_metadata:
+    name: Metadata Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Exempt Labels
+        id: exempt
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const exemptLabels = [
+              'build_id',
+              'docs-only',
+              'typo-fix',
+              'hotfix'
+            ];
+            const labels = context.payload.pull_request.labels.map(l => l.name);
+            const isExempt = labels.some(l => exemptLabels.includes(l));
+            core.setOutput('skip', isExempt ? 'true' : 'false');
+            if (isExempt) {
+              core.info(`✅ Skipping metadata validation (exempt label found: ${labels.filter(l => exemptLabels.includes(l)).join(', ')})`);
+            }
+
+      - name: Get Changed Files
+        id: changed
+        if: steps.exempt.outputs.skip != 'true'
+        run: |
+          FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(md|yaml|yml)$' || true)
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          if [ -z "$FILES" ]; then
+            echo " No metadata files changed"
+          else
+            echo " Changed files:"
+            echo "$FILES"
+          fi
+
+      - name: Set up Python
+        if: steps.exempt.outputs.skip != 'true' && steps.changed.outputs.files != ''
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        if: steps.exempt.outputs.skip != 'true' && steps.changed.outputs.files != ''
+        run: |
+          # Use lightweight CI deps (no ML packages needed for validation)
+          pip install -r requirements-ci.txt
+
+      - name: Run Metadata Validator (Changed Files Only)
+        id: validate
+        if: steps.exempt.outputs.skip != 'true' && steps.changed.outputs.files != ''
+        continue-on-error: true
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+        run: |
+          chmod +x scripts/validate_metadata.py
+          # Filter out Backstage skeleton files with template variables (files containing dollar-brace patterns)
+          echo "$CHANGED_FILES" | grep -v 'skeletons/' | xargs -r python3 scripts/validate_metadata.py
+
+      - name: Validate Enums (Changed Files Only)
+        id: enums
+        if: steps.exempt.outputs.skip != 'true' && steps.changed.outputs.files != ''
+        continue-on-error: true
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+        run: |
+          # Filter out Backstage skeleton files with template variables
+          echo "$CHANGED_FILES" | grep -v 'skeletons/' | xargs -r python3 scripts/validate_enums.py
+
+      - name: Validate Governance Routing (Changed Files Only)
+        id: routing
+        if: steps.exempt.outputs.skip != 'true' && steps.changed.outputs.files != ''
+        continue-on-error: true
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+        run: |
+          # Filter out Backstage skeleton files with template variables
+          echo "$CHANGED_FILES" | grep -v 'skeletons/' | xargs -r python3 scripts/validate_routing_compliance.py
+
+      - name: Run Emoji Policy Enforcer (Changed Files Only)
+        id: emoji
+        if: steps.exempt.outputs.skip != 'true' && steps.changed.outputs.files != ''
+        continue-on-error: true
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+        run: |
+          # Filter out Backstage skeleton files with template variables
+          echo "$CHANGED_FILES" | grep -v 'skeletons/' | xargs -r python3 scripts/enforce_emoji_policy.py --dry-run
+
+      - name: Report Issues (No Auto-Push)
+        id: report
+        if: steps.validate.outcome == 'failure' || steps.emoji.outcome == 'failure' || steps.enums.outcome == 'failure' || steps.routing.outcome == 'failure'
+        run: |
+          echo "drift=true" >> $GITHUB_OUTPUT
+          echo "🩹 Governance drift detected. Please resolve it locally using the command below."
+
+      - name: Summary
+        if: always()
+        env:
+          SKIP_EXEMPT: ${{ steps.exempt.outputs.skip }}
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+          DRIFT_DETECTED: ${{ steps.report.outputs.drift }}
+          VALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+          EMOJI_OUTCOME: ${{ steps.emoji.outcome }}
+          ENUMS_OUTCOME: ${{ steps.enums.outcome }}
+          ROUTING_OUTCOME: ${{ steps.routing.outcome }}
+        run: |
+          echo "## Quality Guardrails Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "$SKIP_EXEMPT" == "true" ]; then
+            echo " **Skipped** - Exempt label detected" >> $GITHUB_STEP_SUMMARY
+          elif [ -z "$CHANGED_FILES" ]; then
+            echo " **No metadata or documentation files changed**" >> $GITHUB_STEP_SUMMARY
+          elif [ "$DRIFT_DETECTED" == "true" ]; then
+            echo " **Governance Drift Detected**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "###  Local Remediation" >> $GITHUB_STEP_SUMMARY
+            echo "Please run the following command to fix your branch and then push the changes:" >> $GITHUB_STEP_SUMMARY
+            echo '```bash' >> $GITHUB_STEP_SUMMARY
+            echo 'bin/governance heal .' >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          elif [ "$VALIDATE_OUTCOME" == "success" ] && [ "$EMOJI_OUTCOME" == "success" ] && [ "$ENUMS_OUTCOME" == "success" ] && [ "$ROUTING_OUTCOME" == "success" ]; then
+            echo "✅ **Passed** - All metadata, enums, routing, and visual standards valid" >> $GITHUB_STEP_SUMMARY
+          else
+            echo " **Failed** - Unexpected CI error" >> $GITHUB_STEP_SUMMARY
+          fi

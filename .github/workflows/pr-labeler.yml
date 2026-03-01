@@ -1,0 +1,25 @@
+# Owner: platform
+name: Policy - PR Labeler
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  labeler:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout base ref
+        uses: actions/checkout@v4
+        with:
+          # Use the base branch ref to avoid stale base SHAs blocking labeler config.
+          ref: ${{ github.event.pull_request.base.ref }}
+          fetch-depth: 1
+      - name: Apply labels
+        uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

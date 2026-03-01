@@ -1,0 +1,16 @@
+---
+id: APPS_80_ONBOARDING_METADATA
+title: metadata
+type: documentation
+risk_profile:
+  production_impact: low
+  security_risk: none
+  coupling_risk: low
+reliability:
+  rollback_strategy: git-revert
+  observability_tier: bronze
+  maturity: 1
+value_quantification:
+  vq_class: 🔵 MV/HQ
+  impact_tier: tier-2
+  potential_savings_hours: 1.0

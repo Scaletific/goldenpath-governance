@@ -1,0 +1,107 @@
+# Owner: platform-team
+# Relates-To: ADR-0167, GOV-0034-ai-agent-governance, 26_AI_AGENT_PROTOCOLS, session_capture_template
+name: Session Capture Guardrail
+
+on:
+  pull_request:
+    paths:
+      - "session_capture/**/*.md"
+      - "!session_capture/*_template.md"
+  workflow_dispatch:  # Manual testing
+
+jobs:
+  enforce-append-only:
+    runs-on: ubuntu-latest
+    # Skip append-only check for release PRs (development→main)
+    # These are merge commits where content may have diverged between branches
+    if: ${{ !(github.base_ref == 'main' && github.head_ref == 'development') }}
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate append-only + timestamped updates
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import os
+          import re
+          import subprocess
+          import sys
+
+          def git(*args: str) -> str:
+              return subprocess.check_output(["git", *args], text=True).strip()
+
+          def split_frontmatter(content: str) -> tuple[str, str]:
+              """Split YAML frontmatter from body content."""
+              if content.startswith("---"):
+                  parts = content.split("---", 2)
+                  if len(parts) >= 3:
+                      return parts[1], parts[2]
+              return "", content
+
+          base_ref = os.environ.get("GITHUB_BASE_REF", "")
+          base = ""
+          if base_ref:
+              try:
+                  base = git("merge-base", f"origin/{base_ref}", "HEAD")
+              except subprocess.CalledProcessError:
+                  base = ""
+          if not base:
+              try:
+                  base = git("merge-base", "HEAD", "origin/" + git("symbolic-ref", "--short", "refs/remotes/origin/HEAD").split("/")[-1])
+              except subprocess.CalledProcessError:
+                  print(" Could not determine base branch. Skipping validation.")
+                  sys.exit(0)
+
+          changed = git("diff", "--name-only", f"{base}..HEAD").splitlines()
+          # Exclude template files
+          files = [
+              f for f in changed
+              if f.startswith("session_capture/")
+              and f.endswith(".md")
+              and not f.endswith("_template.md")
+          ]
+
+          if not files:
+              print("✅ No session capture files changed.")
+              sys.exit(0)
+
+          # Match "## Update - 2026-01-17T09:48:36Z" or "### Update — 2026-01-17T09:48:36Z"
+          update_re = re.compile(r"^#{2,3} Update (?:-|—) \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
+          outstanding_re = re.compile(r"^(?:#{2,4} )?Outstanding\b|^\*\*Outstanding\b")
+
+          for f in files:
+              try:
+                  before = git("show", f"{base}:{f}")
+              except subprocess.CalledProcessError:
+                  print(f"ℹ {f} is new; append-only check skipped.")
+                  continue
+
+              after = git("show", f"HEAD:{f}")
+
+              # Split frontmatter from body - frontmatter updates are allowed
+              before_fm, before_body = split_frontmatter(before)
+              after_fm, after_body = split_frontmatter(after)
+
+              before_lines = before_body.splitlines()
+              after_lines = after_body.splitlines()
+
+              if after_lines[:len(before_lines)] != before_lines:
+                  print(f"🚫 {f} is not append-only. Previous content was modified.")
+                  sys.exit(1)
+
+              appended = after_lines[len(before_lines):]
+              if appended:
+                  if not any(update_re.match(line) for line in appended):
+                      print(f"🚫 {f} appended content must include a timestamped update header (e.g., '## Update - 2026-01-17T09:48:36Z').")
+                      sys.exit(1)
+                  if not any(outstanding_re.match(line) for line in appended):
+                      print(f"🚫 {f} appended content must include an Outstanding section.")
+                      sys.exit(1)
+
+          print("✅ Session capture files are append-only with timestamped updates.")
+          PY

@@ -1,0 +1,8 @@
+node_modules
+dist
+.vite
+*.tsbuildinfo
+
+# Override root .gitignore so Docker build can COPY these
+!package.json
+!package-lock.json

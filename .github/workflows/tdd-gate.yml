@@ -1,0 +1,216 @@
+name: TDD Gate
+
+on:
+  pull_request:
+    paths:
+      - '**.py'
+      - '**.sh'
+    branches:
+      - main
+      - development
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  check-tests-exist:
+    name: Verify Tests Exist
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for corresponding tests
+        id: check-tests
+        run: |
+          echo "## TDD Gate Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          MISSING_TESTS=()
+          CHECKED_FILES=()
+          SKIPPED_FILES=()
+
+          # Get changed files (Python and Shell only)
+          FILES=$(git diff --name-only origin/${{ github.base_ref }} HEAD | grep -E '\.(py|sh)$' || true)
+
+          if [[ -z "$FILES" ]]; then
+            echo "No Python or Shell files changed." >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
+          for file in $FILES; do
+            # Skip if file doesn't exist (deleted)
+            if [[ ! -f "$file" ]]; then
+              continue
+            fi
+
+            # Skip test files themselves
+            if [[ "$file" =~ \.test\. ]] || [[ "$file" =~ _test\. ]] || [[ "$file" =~ ^tests/ ]] || [[ "$file" =~ /tests/ ]]; then
+              SKIPPED_FILES+=("$file (test file)")
+              continue
+            fi
+
+            # Skip __init__.py
+            if [[ "$file" =~ __init__\.py ]]; then
+              SKIPPED_FILES+=("$file (init file)")
+              continue
+            fi
+
+            # Skip conftest.py
+            if [[ "$file" =~ conftest\.py ]]; then
+              SKIPPED_FILES+=("$file (pytest config)")
+              continue
+            fi
+
+            # Check for SKIP-TDD marker in file
+            if grep -q "SKIP-TDD:" "$file" 2>/dev/null; then
+              SKIPPED_FILES+=("$file (SKIP-TDD marker)")
+              continue
+            fi
+
+            CHECKED_FILES+=("$file")
+
+            # Determine expected test file locations
+            dir=$(dirname "$file")
+            filename=$(basename "$file")
+            base="${filename%.*}"
+            ext="${filename##*.}"
+
+            # For Python files
+            if [[ "$ext" == "py" ]]; then
+              # Check multiple possible test locations
+              TEST_FOUND=false
+
+              # Pattern 1: tests/unit/test_<name>.py
+              if [[ -f "tests/unit/test_${base}.py" ]]; then
+                TEST_FOUND=true
+              fi
+
+              # Pattern 2: tests/<dir>/test_<name>.py
+              if [[ -f "tests/${dir}/test_${base}.py" ]]; then
+                TEST_FOUND=true
+              fi
+
+              # Pattern 3: <dir>/tests/test_<name>.py
+              if [[ -f "${dir}/tests/test_${base}.py" ]]; then
+                TEST_FOUND=true
+              fi
+
+              # Pattern 4: <dir>/test_<name>.py
+              if [[ -f "${dir}/test_${base}.py" ]]; then
+                TEST_FOUND=true
+              fi
+
+              # Pattern 5: tests/scripts/test_script_<name>.py (GoldenPath convention)
+              if [[ -f "tests/scripts/test_script_${base}.py" ]]; then
+                TEST_FOUND=true
+              fi
+
+              # Pattern 6: Check metadata for SCRIPT-XXXX ID and test_script_XXXX.py
+              SCRIPT_ID=$(grep -E 'id:\s*SCRIPT-[0-9]+' "$file" 2>/dev/null | head -1 | sed 's/.*SCRIPT-//' | grep -o '[0-9]*' | head -1 || true)
+              if [[ -n "$SCRIPT_ID" ]]; then
+                if [[ -f "tests/scripts/test_script_${SCRIPT_ID}.py" ]]; then
+                  TEST_FOUND=true
+                fi
+              fi
+
+              if [[ "$TEST_FOUND" == "false" ]]; then
+                MISSING_TESTS+=("$file")
+              fi
+            fi
+
+            # For Shell files
+            if [[ "$ext" == "sh" ]]; then
+              TEST_FOUND=false
+              # Normalize hyphens to underscores (BATS convention)
+              base_under="${base//-/_}"
+
+              # Pattern 1: tests/bats/test_<name>.bats (exact match)
+              if [[ -f "tests/bats/test_${base}.bats" ]]; then
+                TEST_FOUND=true
+              fi
+
+              # Pattern 2: tests/bats/test_<name_underscored>.bats
+              if [[ -f "tests/bats/test_${base_under}.bats" ]]; then
+                TEST_FOUND=true
+              fi
+
+              # Pattern 3: tests/bats/<name>.bats
+              if [[ -f "tests/bats/${base}.bats" ]]; then
+                TEST_FOUND=true
+              fi
+
+              # Pattern 4: Check metadata for SCRIPT-XXXX ID and test_script_XXXX.bats
+              SCRIPT_ID=$(grep -E 'id:\s*SCRIPT-[0-9]+' "$file" 2>/dev/null | head -1 | sed 's/.*SCRIPT-//' | grep -o '[0-9]*' | head -1 || true)
+              if [[ -n "$SCRIPT_ID" ]]; then
+                if [[ -f "tests/bats/test_script_${SCRIPT_ID}.bats" ]]; then
+                  TEST_FOUND=true
+                fi
+              fi
+
+              if [[ "$TEST_FOUND" == "false" ]]; then
+                MISSING_TESTS+=("$file")
+              fi
+            fi
+          done
+
+          # Report results
+          echo "### Files Checked" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ ${#CHECKED_FILES[@]} -gt 0 ]]; then
+            for f in "${CHECKED_FILES[@]}"; do
+              echo "- \`$f\`" >> $GITHUB_STEP_SUMMARY
+            done
+          else
+            echo "No files required test verification." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Skipped Files" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ ${#SKIPPED_FILES[@]} -gt 0 ]]; then
+            for f in "${SKIPPED_FILES[@]}"; do
+              echo "- \`$f\`" >> $GITHUB_STEP_SUMMARY
+            done
+          else
+            echo "None" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Fail if missing tests
+          if [[ ${#MISSING_TESTS[@]} -gt 0 ]]; then
+            echo "### :x: Missing Tests" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The following files do not have corresponding tests:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            for f in "${MISSING_TESTS[@]}"; do
+              echo "- \`$f\`" >> $GITHUB_STEP_SUMMARY
+            done
+
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**TDD Policy**: Every source file must have a corresponding test file." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "See [ADR-0182: TDD Philosophy](docs/adrs/ADR-0182-tdd-philosophy.md) for details." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "To skip TDD for a file, add a comment: \`# SKIP-TDD: <reason>\`" >> $GITHUB_STEP_SUMMARY
+
+            echo ""
+            echo " TDD Gate Failed: Missing tests for ${#MISSING_TESTS[@]} file(s)"
+            echo ""
+            printf '  - %s\n' "${MISSING_TESTS[@]}"
+            exit 1
+          fi
+
+          echo "### :white_check_mark: All Tests Present" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All source files have corresponding tests." >> $GITHUB_STEP_SUMMARY
+
+          echo ""
+          echo "✅ TDD Gate Passed: All source files have corresponding tests"

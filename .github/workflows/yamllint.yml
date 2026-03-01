@@ -1,0 +1,30 @@
+# Owner: platform
+name: Quality - YAML Lint
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  yamllint:
+    name: Yamllint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Run yamllint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: .
+          config_file: .yamllint
+      - name: Runbook link
+        if: always()
+        run: |
+          echo "Runbook: CONTRIBUTING.md" >> "${GITHUB_STEP_SUMMARY}"

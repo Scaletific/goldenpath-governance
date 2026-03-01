@@ -1,0 +1,17 @@
+version: 1
+
+properties:
+  platform_team:
+    type: array
+    items:
+      type: string
+    description: "List of GitHub usernames allowed to use platform-only bypasses (hotfix, build_id)."
+
+  service_accounts:
+    type: array
+    items:
+      type: string
+    description: "Automated bots with bypass privileges."
+
+required:
+  - platform_team

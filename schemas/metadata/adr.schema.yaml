@@ -1,0 +1,49 @@
+type: object
+required:
+  - id
+  - title
+  - status
+  - domain
+  - applies_to
+
+properties:
+  id:
+    type: string
+    pattern: "^ADR-[0-9]{4}$"
+
+  title:
+    type: string
+
+  type:
+    default: adr
+
+  status:
+    enum_from: adr_status
+    default: accepted
+
+  domain:
+    enum_from: domains
+    default: platform-core
+
+  applies_to:
+    type: array
+    default: ["infra"]
+    items:
+      enum_from: components
+
+  value_quantification:
+    type: object
+    additionalProperties: false
+    properties:
+      vq_class:
+        type: string
+        enum_from: vq_class
+      impact_tier:
+        type: string
+        enum:
+          - tier-1
+          - tier-2
+          - tier-3
+          - low
+      potential_savings_hours:
+        type: number

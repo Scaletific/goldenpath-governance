@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-01-06T23:59:53.914469",
+  "total_files": 668,
+  "compliant_files": 0,
+  "inherited_coverage": 0,
+  "explicit_coverage": 5750,
+  "exempt_files": 0,
+  "enum_drift_attempts": 0,
+  "failures": [
+    {
+      "file": "./apps/sample-stateless-app/rbac.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: rbac.authorization.k ... \n    ^\nbut found another document\n  in \"<unicode string>\", line 10, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/sample-stateless-app/deploy/kustomize/base/rbac.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: rbac.authorization.k ... \n    ^\nbut found another document\n  in \"<unicode string>\", line 10, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/sample-stateless-app/deploy/helm/templates/rbac.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: rbac.authorization.k ... \n    ^\nbut found another document\n  in \"<unicode string>\", line 10, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/Wordpress-on-EFS/rbac.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: rbac.authorization.k ... \n    ^\nbut found another document\n  in \"<unicode string>\", line 10, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/Wordpress-on-EFS/deploy/kustomize/base/rbac.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: rbac.authorization.k ... \n    ^\nbut found another document\n  in \"<unicode string>\", line 10, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/Wordpress-on-EFS/deploy/helm/templates/rbac.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: rbac.authorization.k ... \n    ^\nbut found another document\n  in \"<unicode string>\", line 10, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/Wordpress-on-EFS/wp-deployment/mysql-deployment.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: v1\n    ^\nbut found another document\n  in \"<unicode string>\", line 14, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/Wordpress-on-EFS/wp-deployment/wp-deployment.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: v1\n    ^\nbut found another document\n  in \"<unicode string>\", line 14, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/stateful-app/deploy-wordpress-by-deployment.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: v1\n    ^\nbut found another document\n  in \"<unicode string>\", line 14, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/stateful-app/deploy-wordpress-by-statefulset.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: v1\n    ^\nbut found another document\n  in \"<unicode string>\", line 14, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/stateful-app/deploy-mysql.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: v1\n    ^\nbut found another document\n  in \"<unicode string>\", line 14, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/stateful-app/rbac.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: rbac.authorization.k ... \n    ^\nbut found another document\n  in \"<unicode string>\", line 10, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/stateful-app/pvcs.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: v1\n    ^\nbut found another document\n  in \"<unicode string>\", line 13, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/stateful-app/deploy/kustomize/base/rbac.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: rbac.authorization.k ... \n    ^\nbut found another document\n  in \"<unicode string>\", line 10, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/stateful-app/deploy/helm/templates/rbac.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: rbac.authorization.k ... \n    ^\nbut found another document\n  in \"<unicode string>\", line 10, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./apps/fast-api-app-template/rbac.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: rbac.authorization.k ... \n    ^\nbut found another document\n  in \"<unicode string>\", line 10, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./docs/policies/ecr-risk-settings.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    id: ECR_RISK_SETTINGS\n    ^\nbut found another document\n  in \"<unicode string>\", line 21, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./docs/catalogs/backstage-entities.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: backstage.io/v1alpha1\n    ^\nbut found another document\n  in \"<unicode string>\", line 19, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./docs/templates/METADATA_SIDECAR_TEMPLATE.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 7, column 1:\n    id: REPLACE_WITH_ID\n    ^\nbut found another document\n  in \"<unicode string>\", line 45, column 1:\n    ---\n    ^"
+    },
+    {
+      "file": "./gitops/kustomize/bases/namespaces.yaml",
+      "error": "expected a single document in the stream\n  in \"<unicode string>\", line 1, column 1:\n    apiVersion: v1\n    ^\nbut found another document\n  in \"<unicode string>\", line 5, column 1:\n    ---\n    ^"
+    }
+  ]
+}

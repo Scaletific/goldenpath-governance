@@ -1,0 +1,44 @@
+# schemas/routing/service_class_approvals.yaml
+version: 1
+
+defaults:
+  tier: platform-approval
+  required_reviewers:
+    - platform-team
+
+rules:
+  kubernetes-clusters:
+    tier: platform-and-security
+    required_reviewers: [platform-team, security-team]
+
+  container-registries:
+    tier: platform-approval
+    required_reviewers: [platform-team]
+
+  networking-vpc:
+    tier: platform-and-security
+    required_reviewers: [platform-team, security-team, operations-team]
+
+  databases-rds:
+    tier: platform-and-security
+    required_reviewers: [platform-team, security-team, database-team]
+
+  databases-dynamodb:
+    tier: platform-and-security
+    required_reviewers: [platform-team, security-team, database-team]
+
+  storage-s3:
+    tier: platform-and-security
+    required_reviewers: [platform-team, security-team]
+
+  storage-efs:
+    tier: platform-and-security
+    required_reviewers: [platform-team, security-team]
+
+  storage-ebs:
+    tier: platform-approval
+    required_reviewers: [platform-team]
+
+  compute-vms:
+    tier: platform-and-security
+    required_reviewers: [platform-team, security-team, sre-team]
